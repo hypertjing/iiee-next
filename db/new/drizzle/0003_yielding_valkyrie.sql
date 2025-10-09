@@ -1,0 +1,1 @@
+ALTER TABLE `cogsrequest` RENAME COLUMN `chapter_president_view_status` TO `viewed`;

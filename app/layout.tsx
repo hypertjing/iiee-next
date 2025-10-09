@@ -34,7 +34,7 @@ export default function RootLayout({
                 className={`${geistSans.variable} ${geistMono.variable} ${poppins.className} antialiased`}
             >
                 {children}
-                <Toaster />
+                <Toaster richColors />
             </body>
         </html>
     );

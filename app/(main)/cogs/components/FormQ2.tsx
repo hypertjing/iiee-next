@@ -7,7 +7,7 @@ export default function FormQ2(props: {
     onAnswer: (ans: YesNo) => void;
 }) {
     return (
-        <div className="bg-white shadow-lg rounded-xl p-5">
+        <div className="bg-white rounded-xl py-5">
             <div className="mb-3">
                 Are you involved in any form of sanction, suspension, or
                 disciplinary censure from your respective chapter and/or the

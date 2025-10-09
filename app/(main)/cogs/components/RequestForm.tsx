@@ -8,8 +8,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Fee, Position, ShippingType, UserAccount, UserProfile } from "@/types";
+import { Loader2, Send } from "lucide-react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { YesNo } from "../page";
 import FileUploader from "./FileUploader";
@@ -17,34 +18,117 @@ import FormQ1 from "./FormQ1";
 import FormQ2 from "./FormQ2";
 import FormQ3 from "./FormQ3";
 
-export type RequestFormType = {
-    req_type: string;
-    file1: File | undefined;
-    file2: File | undefined;
-    q1_answer: YesNo | undefined;
-    q2_answer: YesNo | undefined;
-    q3_answer: YesNo | undefined;
+export type CogsRequestFormType = {
+    user_id: number;
+    certificate_gmm_file: File | undefined;
+    certificate_activity_file: File | undefined;
+    question1: YesNo | undefined;
+    question2: YesNo | undefined;
+    question3: YesNo | undefined;
+    fee: Fee | undefined;
+    amount_due: string;
+    status:
+        | "Pending"
+        | "Approved"
+        | "On Process"
+        | "For Payment"
+        | "Paid"
+        | "For Printing"
+        | "For Delivery"
+        | "Delivered"
+        | "Denied"
+        | "Not Required";
+    viewed: boolean;
 };
 
 export default function RequestForm(props: {
-    user_has_voted: boolean;
-    onSubmitAction: (data: RequestFormType) => Promise<void>;
+    user: {
+        userprofile: UserProfile;
+        account: UserAccount;
+        poistion: Position;
+    };
+    db_fees: Fee[];
+    db_shippingtypes: ShippingType[];
+    onSubmitAction: (
+        data: CogsRequestFormType
+    ) => Promise<{ success: boolean; message: string }>;
 }) {
-    const [form, setForm] = useState<RequestFormType>({
-        req_type: "",
-        file1: undefined,
-        file2: undefined,
-        q1_answer: undefined,
-        q2_answer: undefined,
-        q3_answer: undefined,
+    const [form, setForm] = useState<CogsRequestFormType>({
+        user_id: props.user.account.pkUserAccountsId,
+        certificate_gmm_file: undefined,
+        certificate_activity_file: undefined,
+        question1: undefined,
+        question2: undefined,
+        question3: undefined,
+        fee: undefined,
+        amount_due: "0.00",
+        status: "Pending",
+        viewed: false,
     });
 
-    function handleSubmit() {
-        const data = { ...form };
-        if (data.file1 == undefined || data.file2 == undefined) {
-            toast("Please upload a file created.");
+    // const user_position = props.user.poistion?.code;
+    const user_position = "P1";
+    // const get_user_query = useQuery({ queryKey: ["user"], queryFn: getUser });
+
+    function handleRequestTypeChange(fee_id: string): void {
+        // const [fee_id, fee_code] = value.split("|");
+        const temp_form = { ...form };
+
+        const selected_fee = props.db_fees.find(
+            (fee) => fee.pkFeesId == Number(fee_id)
+        );
+
+        if (!selected_fee) {
+            toast("Fee not found.");
             return;
         }
+
+        // if (selected_fee.code == "COGS") {
+        //     temp_form.amount_due = "0.00";
+        // }
+        temp_form.fee = selected_fee;
+        temp_form.amount_due = selected_fee.amount;
+
+        setForm(temp_form);
+    }
+
+    function handleQ1Select(ans: YesNo) {
+        setForm({
+            ...form,
+            question1: ans,
+        });
+    }
+
+    function handleQ2Select(ans: YesNo) {
+        setForm({
+            ...form,
+            question2: ans,
+        });
+    }
+
+    function handleQ3Select(ans: YesNo) {
+        setForm({
+            ...form,
+            question3: ans,
+        });
+    }
+
+    const [pending, startTransition] = useTransition();
+    function handleSubmit() {
+        const data = { ...form };
+        startTransition(async () => {
+            const res = await props.onSubmitAction(data);
+            if (res.success) {
+                toast.success(res.message);
+                return;
+            }
+
+            toast.error(res.message);
+        });
+        // if (data.certificate_gmm_file == undefined || data.certificate_activity_file == undefined) {
+        //     toast("Please upload a file created.");
+        //     return;
+        // }
 
         // if (data. == undefined) {
         //     toast("Please upload a file created.");
@@ -52,185 +136,141 @@ export default function RequestForm(props: {
         // }
 
         // console.log(data);
-
-        // props.onSubmitAction(data);
     }
-
-    function handleQ1Select(ans: YesNo) {
-        setForm({
-            ...form,
-            q1_answer: ans,
-        });
-        if (ans == "yes") {
-            setForm({
-                ...form,
-                q1_answer: ans,
-                q2_answer: undefined,
-            });
-        }
-    }
-
-    function handleQ2Select(ans: YesNo) {
-        setForm({
-            ...form,
-            q2_answer: ans,
-        });
-    }
-
-    function handleQ3Select(ans: YesNo) {
-        setForm({
-            ...form,
-            q3_answer: ans,
-        });
-    }
-
-    useEffect(() => {
-        if (form.file1 == null) {
-            setForm({
-                ...form,
-                file1: undefined,
-                q1_answer: undefined,
-                q2_answer: undefined,
-                q3_answer: undefined,
-            });
-            console.log("Okay", form);
-        }
-    }, [form.file1]);
-
-    useEffect(() => {
-        if (form.file2 == null) {
-            setForm({
-                ...form,
-                file2: undefined,
-                q1_answer: undefined,
-                q2_answer: undefined,
-                q3_answer: undefined,
-            });
-            console.log("Okay", form);
-        }
-    }, [form.file2]);
 
     return (
         <div className="w-[600px] space-y-4">
-            <div className="">Request Form</div>
-            <div className="bg-white rounded-xl p-5 space-y-2">
+            <div className="bg-white rounded-xl space-y-2 mb-10">
                 <div>Request Type</div>
-                <Select
-                    onValueChange={(value) =>
-                        setForm({ ...form, req_type: value })
-                    }
-                    defaultValue={form.req_type}
-                >
+                <Select onValueChange={handleRequestTypeChange}>
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select request type" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="cogs">
-                            COGS - Request life member
-                        </SelectItem>
-                        <SelectItem value="uid">UID - UNIVERSAL ID</SelectItem>
+                        {props.db_fees.map((fee) => (
+                            <SelectItem
+                                value={`${fee.pkFeesId}`}
+                                key={fee.pkFeesId}
+                            >
+                                {fee.code} - {fee.description}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
-                <input
-                    type="hidden"
-                    value={form.req_type}
-                    name="request_type"
-                />
             </div>
-            {form.req_type == "cogs" && (
-                <>
-                    {props.user_has_voted ? (
-                        <>
-                            <div className="shadow-lg bg-white rounded-xl p-5">
-                                <div className="grid w-full items-center gap-4">
-                                    <div className="font-semibold">
-                                        Upload the following documents:
-                                        <div className="text-red-500 p-2 bg-red-100 rounded-md">
-                                            <span className="">Required</span>
-                                        </div>
-                                    </div>
-                                    <ul className="list-disc mx-5 space-y-4">
-                                        <li className="space-y-2">
-                                            <div>
-                                                Certificate of Attendance for
-                                                one (1) GMM of the Chapter
-                                            </div>
-                                            <FileUploader
-                                                file={form.file1}
-                                                onUpload={(file) =>
-                                                    setForm({
-                                                        ...form,
-                                                        file1: file,
-                                                    })
-                                                }
-                                            />
-                                        </li>
-                                        <li className="space-y-2">
-                                            <div>
-                                                Certificate of Attendance for
-                                                one (1) chapter activity or
-                                                national or regional conference
-                                                in a year
-                                            </div>
-                                            <FileUploader
-                                                file={form.file2}
-                                                onUpload={(file) =>
-                                                    setForm({
-                                                        ...form,
-                                                        file2: file,
-                                                    })
-                                                }
-                                            />
-                                        </li>
-                                    </ul>
+            {/* {JSON.stringify(form.fee)} */}
+            {/* <div className="bg-white rounded-xl p-5">
+                <div className="mb-3">
+                    Delivery Options{" "}
+                    <span className="text-lg text-red-500">*</span>
+                </div>
+                <RadioGroup
+                    onValueChange={(value) => {}}
+                    // defaultValue={props.defaultValue}
+                >
+                    {props.db_shippingtypes.map((shippingtype) => (
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem
+                                value={`${shippingtype.pkShippingTypesId}`}
+                                id={`stype-${shippingtype.pkShippingTypesId}`}
+                            />
+                            <Label
+                                className="font-normal"
+                                htmlFor={`stype-${shippingtype.pkShippingTypesId}`}
+                            >
+                                {shippingtype.code} - {shippingtype.description}
+                            </Label>
+                        </div>
+                    ))}
+                </RadioGroup>
+            </div> */}
 
-                                    {/* {JSON.stringify(form)} */}
-                                </div>
+            {form.fee?.code == "COGS" && (
+                <>
+                    <div className=" bg-white rounded-xl">
+                        <div className="grid w-full items-center gap-4">
+                            <div className="font-semibold">
+                                Upload the following documents:
                             </div>
-                            {form.file1 && form.file2 && (
-                                <>
-                                    <FormQ1
-                                        onAnswer={handleQ1Select}
-                                        defaultValue={form.q1_answer}
+                            <ul className="list-disc mx-5 space-y-4">
+                                <li className="space-y-2">
+                                    <div>
+                                        Certificate of Attendance for one (1)
+                                        GMM of the Chapter
+                                    </div>
+                                    <FileUploader
+                                        file={form.certificate_gmm_file}
+                                        onUpload={(file) =>
+                                            setForm({
+                                                ...form,
+                                                certificate_gmm_file: file,
+                                            })
+                                        }
                                     />
-                                    <FormQ2
-                                        onAnswer={handleQ2Select}
-                                        defaultValue={form.q2_answer}
+                                </li>
+                                <li className="space-y-2">
+                                    <div>
+                                        Certificate of Attendance for one (1)
+                                        chapter activity or national or regional
+                                        conference in a year
+                                    </div>
+                                    <FileUploader
+                                        file={form.certificate_activity_file}
+                                        onUpload={(file) => {
+                                            if (file === undefined) return;
+                                            setForm({
+                                                ...form,
+                                                certificate_activity_file: file,
+                                            });
+                                        }}
                                     />
-                                    <FormQ3
-                                        onAnswer={handleQ3Select}
-                                        defaultValue={form.q3_answer}
-                                    />
-                                    <Button
-                                        className="bg-[#627aae] hover:bg-[#4b6cb3] shadow-lg/40"
-                                        onClick={handleSubmit}
-                                    >
-                                        <Send />
-                                        Submit
-                                    </Button>
-                                </>
-                            )}
+                                </li>
+                            </ul>
 
                             {/* {JSON.stringify(form)} */}
-                        </>
-                    ) : (
-                        <div className="flex gap-4 p-5 bg-amber-100 rounded-lg text-gray-600">
-                            <div>
-                                <AlertCircle
-                                    className="text-amber-500"
-                                    size={50}
-                                />
-                            </div>
-                            <div>
-                                <b>Attention:</b> Members who have not voted in
-                                the recent elections are{" "}
-                                <b>not allowed to request </b>
-                                for COGS. Please contact your Chapter President.
-                            </div>
                         </div>
-                    )}
+                    </div>
+                    <FormQ1
+                        onAnswer={handleQ1Select}
+                        defaultValue={form.question1}
+                    />
+                    <FormQ2
+                        onAnswer={handleQ2Select}
+                        defaultValue={form.question2}
+                    />
+                    <FormQ3
+                        onAnswer={handleQ3Select}
+                        defaultValue={form.question3}
+                    />
+                    <div className="text-lg font-semibold mt-10 mb-5">
+                        <span className="font-semibold">Total Fee:</span>{" "}
+                        <span className="text-amber-600">
+                            ₱ {form.amount_due}
+                        </span>
+                    </div>
+                    <Button
+                        className="bg-[#627aae] hover:bg-[#4b6cb3]"
+                        onClick={handleSubmit}
+                        disabled={pending}
+                    >
+                        {pending ? (
+                            <>
+                                <Loader2 className="animate-spin" />
+                                Submitting...
+                            </>
+                        ) : (
+                            <>
+                                <Send /> Submit
+                            </>
+                        )}
+                    </Button>
+                    {/* <pre>{JSON.stringify(form, null, 2)}</pre> */}
+                    {/* {JSON.stringify(form)} */}
                 </>
             )}
+            {/* {form.fee?.code != "" && form.fee?.code != "COGS" && (
+                <>Coming soon</>
+            )} */}
         </div>
     );
 }

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { db } from "@/db";
-import { userprofiles } from "@/db/schema";
+import { db_old } from "@/db/old";
+import { userprofiles } from "@/db/old/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 // Example user (replace with API/db fetch)
@@ -14,7 +14,7 @@ export default async function ProfilePage({
     const { m_pid } = await params;
 
     const profile = (
-        await db
+        await db_old
             .select()
             .from(userprofiles)
             .where(eq(userprofiles.pkUserProfilesId, m_pid))

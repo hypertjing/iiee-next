@@ -45,11 +45,53 @@ export default function MembersTablePagination(props: {
         );
     }
 
+    if (props.pages <= 7) {
+        return (
+            <Pagination className="justify-end py-4">
+                <PaginationContent>
+                    <PaginationItem>
+                        <Button
+                            variant={"ghost"}
+                            disabled={props.current_page === 1}
+                            onClick={props.onPaginationPrevAction}
+                        >
+                            <ChevronLeft /> Previous
+                        </Button>
+                    </PaginationItem>
+                    {Array.from(
+                        { length: props.pages - 1 + 1 },
+                        (_, i) => 1 + i
+                    ).map((page, index) => (
+                        <PaginationItem key={index}>
+                            <Button
+                                variant={"ghost"}
+                                size={"icon"}
+                                onClick={() => props.onJumpToPageAction(page)}
+                                className={`${
+                                    props.current_page === page && "bg-gray-200"
+                                }`}
+                            >
+                                {page}
+                            </Button>
+                        </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                        <Button
+                            variant={"ghost"}
+                            disabled={props.current_page === props.pages}
+                            onClick={props.onPaginationNextAction}
+                        >
+                            Next <ChevronRight />
+                        </Button>
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    }
+
     return (
         <div className="flex items-center justify-end space-x-2 py-4">
-            <div className="text-muted-foreground flex-1 text-sm">
-                1 row(s) selected.
-            </div>
             <div className="space-x-2">
                 <Pagination>
                     <PaginationContent>

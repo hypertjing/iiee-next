@@ -7,7 +7,7 @@ export default function FormQ3(props: {
     onAnswer: (ans: YesNo) => void;
 }) {
     return (
-        <div className="bg-white shadow-lg rounded-xl p-5">
+        <div className="bg-white rounded-xl py-5">
             <div className="mb-3">
                 Do you abide by the provisions of the Professional Practice
                 Manual?

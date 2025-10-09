@@ -1,0 +1,22 @@
+CREATE TABLE `cogsrequest` (
+	`id` bigint AUTO_INCREMENT NOT NULL,
+	`user_id` bigint NOT NULL,
+	`certificate_gmm_file_url` varchar(500) NOT NULL,
+	`certificate_activity_file_url` varchar(500) NOT NULL,
+	`question1` boolean,
+	`question2` boolean,
+	`question3` boolean,
+	`shipping_type_id` bigint NOT NULL,
+	`or_number` varchar(100) NOT NULL,
+	`or_date` timestamp NOT NULL,
+	`fee_id` bigint NOT NULL,
+	`amount_due` decimal(12,2) NOT NULL DEFAULT '0.00',
+	`status` enum('Pending','On Process','For Payment','Paid','For Printing','For Delivery','Delivered','Approved','Denied','Not Required') NOT NULL DEFAULT 'Pending',
+	`chapter_president_view_status` boolean NOT NULL DEFAULT false,
+	`approved_by` bigint,
+	`approved_at` timestamp,
+	`remarks` varchar(255),
+	`created_at` timestamp NOT NULL DEFAULT (now()),
+	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `cogsrequest_id` PRIMARY KEY(`id`)
+);

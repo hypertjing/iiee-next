@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -9,22 +10,33 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { UserProfile } from "@/types";
-import { Loader2, Search } from "lucide-react";
+import { MemberChapters, MemberRegionChapter, MemberRegions } from "@/types";
+import { Loader2, Search, Users } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
-import { getUserProfilesAction } from "../actions";
+import { getUserProfilesAction, MemberStatusType } from "../actions";
+import MemberStatusDashboard from "../dashboard/MemberStatusDashboard";
 import { MembersTable } from "./MembersTable";
 import MembersTablePagination from "./MembersTablePagination";
 
-export default function Member() {
+export default function Member(props: {
+    regions_list: MemberRegions[];
+    chapters_list: MemberChapters[];
+}) {
+    const [member_regions, setMemberRegions] = useState("all");
+    const [member_chapters, setMemberChapters] = useState("all");
     const [member_type, setMemberType] = useState("all");
+    const [member_status, setMemberStatus] = useState<MemberStatusType>("all");
     const [keyword, setKeyword] = useState("");
     const [max_page, setMaxPage] = useState(0);
     const [limit, setLimit] = useState(10);
     const [offset, setOffset] = useState(0);
     const [current_page, setCurrentPage] = useState<number>(1);
     const [pages, setPages] = useState<number>(0);
-    const [user_profiles, setUserProfiles] = useState<UserProfile[]>([]);
+    const [active_member, setActiveMember] = useState(0);
+    const [inactive_member, setInactiveMember] = useState(0);
+    const [user_profiles, setUserProfiles] = useState<MemberRegionChapter[]>(
+        []
+    );
     const [pending, startTransition] = useTransition();
 
     async function getUserProfiles() {
@@ -33,12 +45,34 @@ export default function Member() {
             //     `/api/members?offset=${offset}&limit=${limit}&search_keyword=${keyword}&member_type=${member_type}`
             // );
             // const data = await res.json();
-            const data = await getUserProfilesAction(
+            const data = await getUserProfilesAction({
                 keyword,
+                region: member_regions,
+                chapter: member_chapters,
                 member_type,
+                status: member_status,
                 offset,
-                limit
-            );
+                limit,
+            });
+
+            // const fetcher = (url: string) =>
+            //     fetch(url).then((res) => res.json());
+
+            // const { data, error, isLoading } = useSWR(
+            //     "/api/members?offset=110&limit=10&keyword=all&region=all&chapter=all&member_type=all",
+            //     fetcher,
+            //     {
+            //         revalidateOnFocus: false, // don’t refetch when tab is focused
+            //         dedupingInterval: 10000, // cache time (10s)
+            //     }
+            // );
+
+            // const data = await fetch(
+            //     `/api/members?offset=${offset}&limit=${limit}&keyword=${keyword}&region=${member_regions}&chapter=${member_chapters}&member_type=${member_type}`
+            // ).then((res) => res.json());
+
+            setActiveMember(data.active_member);
+            setInactiveMember(data.inactive_member);
 
             setUserProfiles(data.members);
             setMaxPage(data.max_page);
@@ -78,7 +112,19 @@ export default function Member() {
 
     useEffect(() => {
         getUserProfiles();
+    }, [member_regions]);
+
+    useEffect(() => {
+        getUserProfiles();
+    }, [member_chapters]);
+
+    useEffect(() => {
+        getUserProfiles();
     }, [member_type]);
+
+    useEffect(() => {
+        getUserProfiles();
+    }, [member_status]);
 
     useEffect(() => {
         getUserProfiles();
@@ -96,8 +142,9 @@ export default function Member() {
 
     return (
         <>
-            {/* {offset} {limit} */}
-            <div className="flex justify-between py-4">
+            {/* Search filters  */}
+            <div className="flex flex-col gap-2">
+                <Label>Search</Label>
                 <form className="flex gap-2" action={getUserProfiles}>
                     <Input
                         className="w-[400px]"
@@ -122,27 +169,109 @@ export default function Member() {
                         )}
                     </Button>
                 </form>
+            </div>
+            <div className="flex justify-between py-4">
                 <div className="flex gap-2">
-                    <Select
-                        onValueChange={(value) => setMemberType(value)}
-                        defaultValue="all"
-                    >
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Member Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={"all"}>All</SelectItem>
-                            <SelectItem value="Auxiliary">Auxiliary</SelectItem>
-                            <SelectItem value="Associate">Associate</SelectItem>
-                            <SelectItem value="Fellow">Fellow</SelectItem>
-                            <SelectItem value="Life">Life</SelectItem>
-                            <SelectItem value="Regular">Regular</SelectItem>
-                            <SelectItem value="Senior">Senior</SelectItem>
-                            <SelectItem value="NewMember">NewMember</SelectItem>
-                            <SelectItem value="NewBoard">NewBoard</SelectItem>
-                            <SelectItem value="Honorary">Honorary</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-2">
+                        <Label>Region</Label>
+                        <Select
+                            onValueChange={(value) => setMemberRegions(value)}
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Region" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={"all"}>All</SelectItem>
+                                {props.regions_list.map((region) => (
+                                    <SelectItem
+                                        value={region.code}
+                                        key={region.pkRegionsId}
+                                    >
+                                        {region.description}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label>Chapter</Label>
+                        <Select
+                            onValueChange={(value) => setMemberChapters(value)}
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Chapter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={"all"}>All</SelectItem>
+                                {props.chapters_list.map((region) => (
+                                    <SelectItem
+                                        value={region.code}
+                                        key={region.pkChaptersId}
+                                    >
+                                        {region.description}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label>Member Type</Label>
+                        <Select
+                            onValueChange={(value) => setMemberType(value)}
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Member Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={"all"}>All</SelectItem>
+                                <SelectItem value="Auxiliary">
+                                    Auxiliary
+                                </SelectItem>
+                                <SelectItem value="Associate">
+                                    Associate
+                                </SelectItem>
+                                <SelectItem value="Fellow">Fellow</SelectItem>
+                                <SelectItem value="Life">Life</SelectItem>
+                                <SelectItem value="Regular">Regular</SelectItem>
+                                <SelectItem value="Senior">Senior</SelectItem>
+                                <SelectItem value="NewMember">
+                                    New Member
+                                </SelectItem>
+                                <SelectItem value="NewBoard">
+                                    NewBoard
+                                </SelectItem>
+                                <SelectItem value="Honorary">
+                                    Honorary
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label>Status</Label>
+                        <Select
+                            onValueChange={(value: MemberStatusType) =>
+                                setMemberStatus(value)
+                            }
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Chapter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={"all"}>All</SelectItem>
+                                <SelectItem value={"active"}>Active</SelectItem>
+                                <SelectItem value={"inactive"}>
+                                    Inactive
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-2 justify-end">
+                    {/* <Label>Row</Label> */}
                     <Select
                         onValueChange={(value) => handleLimitChange(value)}
                         defaultValue="10"
@@ -177,6 +306,21 @@ export default function Member() {
                     />
                 </>
             )}
+            <div>
+                <div className="text-lg font-semibold flex items-center gap-2 mb-5">
+                    <Users className="w-5 h-5 text-blue-500" />
+                    Member Overview
+                </div>
+                <div className="w-1/3">
+                    <MemberStatusDashboard
+                        totalMembers={max_page}
+                        activeCount={active_member}
+                        inactiveCount={inactive_member}
+                    />
+                </div>
+            </div>
         </>
     );
 }
+
+// Meron akong nahuling nagcheat kanina and I would like to remind you that academic dishonesty is taken very seriously. Wag nyong sirain ang tiwala ko sa inyo. I can easily give you 1 extra year dito sa university, and you’ll end up finishing your BS degree in your 5th year or even 6th year.

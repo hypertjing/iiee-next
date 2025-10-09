@@ -1,0 +1,1 @@
+ALTER TABLE `cogsrequest` MODIFY COLUMN `shipping_type_id` bigint;

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1757999753119,
+      "tag": "0000_nosy_marvex",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1758000055087,
+      "tag": "0001_burly_goliath",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1758000179751,
+      "tag": "0002_lying_marrow",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/db";
-import { useraccounts } from "@/db/schema";
+import { db_old } from "@/db/old";
+import { useraccounts } from "@/db/old/drizzle/schema";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -46,7 +46,7 @@ export async function login(prev: unknown, formData: FormData) {
 
     const { username, password } = validatedFields.data;
 
-    const user_db = await db
+    const user_db = await db_old
         .select()
         .from(useraccounts)
         .where(eq(useraccounts.username, username));
