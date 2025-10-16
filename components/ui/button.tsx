@@ -11,8 +11,7 @@ const buttonVariants = cva(
             variant: {
                 iieeblue:
                     "bg-[#285987] text-primary-foreground hover:bg-[#285987]/90",
-                iieeyellow:
-                    "bg-[#285987] text-primary-foreground hover:bg-primary/90",
+                iieeyellow: "bg-[#fac42f] text-black hover:bg-primary/90",
                 default:
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                 destructive:

@@ -11,7 +11,7 @@ export default function MainLayout({
             <AppSidebar />
             <main className="p-5 w-full">
                 <SidebarTrigger />
-                <div className="p-2">{children}</div>
+                <div className="p-2 pt-5">{children}</div>
             </main>
         </SidebarProvider>
     );

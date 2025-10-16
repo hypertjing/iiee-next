@@ -1,3 +1,5 @@
+import { getUser } from "@/app/lib/dal";
+import BackButton from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
@@ -5,17 +7,26 @@ import { db_old } from "@/db/old";
 import { userprofiles } from "@/db/old/drizzle/schema";
 import { format } from "date-fns";
 import { eq } from "drizzle-orm";
-import { ChevronLeft } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import UserInfo from "../../components/UserInfo";
 import { StatusBadge } from "./StatusBadge";
+import { ApproveButton } from "./components/ApproveButton";
 
 export default async function RequestDetailsPage({
     params,
 }: {
-    params: { request_id: number };
+    params: Promise<{ request_id: number }>;
 }) {
-    const requestId = params.request_id;
+    const user = await getUser();
+
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
+    const user_position: string = "P1";
+    // const user_position = user.poistion?.code;
+
+    const requestId = (await params).request_id;
 
     const request = (
         await db_new
@@ -28,7 +39,7 @@ export default async function RequestDetailsPage({
         return <div className="p-4">Request not found.</div>;
     }
 
-    const user = (
+    const requestor = (
         await db_old
             .select()
             .from(userprofiles)
@@ -36,24 +47,25 @@ export default async function RequestDetailsPage({
             .limit(1)
     )[0];
 
-    const update_res = await db_new
-        .update(cogsrequest)
-        .set({ viewed: true })
-        .where(eq(cogsrequest.id, requestId));
+    request.amount_due = "0";
 
     return (
         <>
             <div>
                 <div className="flex justify-start mb-5">
-                    <Link href="/cogs/request_list">
-                        <Button size="icon" variant="ghost">
-                            <ChevronLeft />
-                        </Button>
+                    <Link href="/cogs">
+                        <BackButton />
                     </Link>
                 </div>
+                {request.status == "Approved" &&
+                    request.user_id == user.account.pkUserAccountsId && (
+                        <div className="underline text-blue-600 p-5 bg-blue-50 mb-10 cursor-pointer">
+                            Download COGS
+                        </div>
+                    )}
                 <div className="px-5">
                     <div className="text-3xl">
-                        {user.fname} {user.mname} {user.lname}
+                        {requestor.fname} {requestor.mname} {requestor.lname}
                     </div>
                     <div className="mb-5 text-gray-500">
                         <div>
@@ -66,31 +78,35 @@ export default async function RequestDetailsPage({
                         </div>
                         <div className="text-sm italic">
                             Updated:{" "}
-                            {request.created_at
+                            {request.updated_at
                                 ? format(
-                                      new Date(request.created_at),
+                                      new Date(request.updated_at),
                                       "MMM d, yyyy hh:mm a"
                                   )
                                 : "—"}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 text-gray-600">
                         <p>
-                            <span className="text-gray-600">Status:</span>{" "}
+                            <span className="">Status:</span>{" "}
                             <StatusBadge status={request.status} />
                         </p>
                         <p>
-                            <span className="text-gray-600">Amount Due:</span>{" "}
+                            <span className="">Amount Due:</span>{" "}
                             <span className="text-orange-500 font-semibold text-xl">
-                                ₱{request.amount_due}
+                                {Number(request.amount_due) <= 0 ? (
+                                    <span className="text-green-600">Free</span>
+                                ) : (
+                                    <>₱{request.amount_due}</>
+                                )}
                             </span>
                         </p>
                         <p>
-                            <span className="text-gray-600">OR Number:</span>{" "}
+                            <span className="">OR Number:</span>{" "}
                             {request.or_number ?? "—"}
                         </p>
                         <p>
-                            <span className="text-gray-600">OR Date:</span>{" "}
+                            <span className="">OR Date:</span>{" "}
                             {request.or_date
                                 ? new Date(request.or_date).toLocaleString(
                                       "en-US",
@@ -107,17 +123,24 @@ export default async function RequestDetailsPage({
                                 : "—"}
                         </p>
                         <p>
-                            <span className="text-gray-600">Remarks:</span>{" "}
+                            <span className="">Remarks:</span>{" "}
                             {request.remarks ?? "—"}
                         </p>
+                        <div className="flex gap-2">
+                            <span className="">Approved By:</span>{" "}
+                            {request.approved_by ? (
+                                <UserInfo user_id={request.approved_by} />
+                            ) : (
+                                "—"
+                            )}
+                        </div>
                         <p>
-                            <span className="text-gray-600">Approved By:</span>{" "}
-                            {request.approved_by ?? "—"}
-                        </p>
-                        <p>
-                            <span className="text-gray-600">Approved At:</span>{" "}
+                            <span className="">Approved At:</span>{" "}
                             {request.approved_at
-                                ? new Date(request.approved_at).toLocaleString()
+                                ? format(
+                                      new Date(request.approved_at),
+                                      "MMM d, yyyy hh:mm a"
+                                  )
                                 : "—"}
                         </p>
                     </div>
@@ -126,28 +149,41 @@ export default async function RequestDetailsPage({
                             Uploaded Certificates
                         </div>
                         <div className="flex gap-6 flex-wrap mt-3">
-                            {request.certificate_gmm_file_url ? (
-                                <Image
-                                    src={request.certificate_gmm_file_url}
-                                    width={300}
-                                    height={300}
-                                    alt="GMM Certificate"
-                                    className="rounded-lg shadow-md border"
-                                />
-                            ) : (
-                                <p>No GMM Certificate uploaded.</p>
-                            )}
-                            {request.certificate_activity_file_url ? (
-                                <Image
-                                    src={request.certificate_activity_file_url}
-                                    width={300}
-                                    height={300}
-                                    alt="Activity Certificate"
-                                    className="rounded-lg shadow-md border"
-                                />
-                            ) : (
-                                <p>No Activity Certificate uploaded.</p>
-                            )}
+                            <div>
+                                <div className="mb-2 text-gray-600">
+                                    GMM Certificate
+                                </div>
+                                {request.certificate_gmm_file_url ? (
+                                    <img
+                                        src={request.certificate_gmm_file_url}
+                                        alt="GMM Certificate"
+                                        className="w-[300px] rounded-lg duration-200 shadow-lg/30 hover:shadow-xl/40"
+                                    />
+                                ) : (
+                                    <p className="p-5 text-amber-800 bg-amber-100 rounded-lg">
+                                        No GMM Certificate uploaded.
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <div className="mb-2 text-gray-600">
+                                    Institute Activity Certificate
+                                </div>
+                                {request.certificate_activity_file_url ? (
+                                    <img
+                                        src={
+                                            request.certificate_activity_file_url
+                                        }
+                                        alt="Activity Certificate"
+                                        className="w-[300px] rounded-lg duration-200 shadow-lg/30 hover:shadow-xl/40"
+                                    />
+                                ) : (
+                                    <p className="p-5 text-amber-800 bg-amber-100 rounded-lg">
+                                        No institute activity certificate
+                                        uploaded.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -187,9 +223,16 @@ export default async function RequestDetailsPage({
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <Button className="bg-red-600">Decline</Button>
-                        <Button className="bg-green-600">Approve</Button>
+                    <div className="flex gap-2 mt-10 mb-20 justify-center">
+                        {user_position == "P1" &&
+                            request.status == "Pending" && (
+                                <>
+                                    <Button className="bg-red-600">
+                                        Decline
+                                    </Button>
+                                    <ApproveButton request={request} />
+                                </>
+                            )}
                     </div>
                 </div>
             </div>

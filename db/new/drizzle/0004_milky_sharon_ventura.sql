@@ -1,0 +1,1 @@
+ALTER TABLE `cogsrequest` ADD `response_viewed` boolean DEFAULT true NOT NULL;

@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
 
 export type NotificationButtonProps = {
     /** show the small red dot indicator */
@@ -10,6 +9,7 @@ export type NotificationButtonProps = {
     /** button label for accessibility (screen reader) */
     srLabel?: string;
     onClick?: () => void;
+    component: React.ReactNode;
 };
 
 /**
@@ -23,6 +23,7 @@ export default function NotificationButton({
     count = null,
     srLabel = "Notifications",
     onClick,
+    component,
 }: NotificationButtonProps) {
     const hasCount = typeof count === "number" && count > 0;
 
@@ -35,7 +36,7 @@ export default function NotificationButton({
                 onClick={onClick}
                 className="relative"
             >
-                <Bell className="h-5 w-5" />
+                {component}
                 {/* red dot indicator (visible when showDot && no numeric count) */}
                 {showDot && !hasCount && (
                     <span

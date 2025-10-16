@@ -13,10 +13,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { db_new } from "@/db/new";
+import { cogsrequest } from "@/db/new/schema";
 import { getInitials } from "@/lib/utils";
+import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -52,6 +56,34 @@ export async function AppSidebar() {
 
     const { userprofile, account } = auth;
 
+    // const notification_count = await db_new.$count(
+    //     cogsrequest,
+    //     eq(cogsrequest.viewed, false)
+    // );
+
+    const user_position: string = "P1";
+    // const user_position = user.poistion?.code;
+
+    const notification_count = await db_new.transaction(async (tx) => {
+        let cogs_requests_temp;
+        if (user_position == "P1") {
+            cogs_requests_temp = await tx.$count(
+                cogsrequest,
+                eq(cogsrequest.viewed, false)
+            );
+        } else {
+            cogs_requests_temp = await tx.$count(
+                cogsrequest,
+                and(
+                    eq(cogsrequest.response_viewed, false),
+                    eq(cogsrequest.user_id, auth.account.pkUserAccountsId)
+                )
+            );
+        }
+
+        return cogs_requests_temp;
+    });
+
     return (
         <Sidebar variant="floating" collapsible="icon">
             <SidebarContent>
@@ -65,6 +97,14 @@ export async function AppSidebar() {
                                         <Link href={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
+                                            {item.url == "/cogs" &&
+                                                notification_count > 0 && (
+                                                    <Badge
+                                                        variant={"destructive"}
+                                                    >
+                                                        {notification_count}
+                                                    </Badge>
+                                                )}
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

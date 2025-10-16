@@ -8,8 +8,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Fee, Position, ShippingType, UserAccount, UserProfile } from "@/types";
+import { Fee, Position, UserAccount, UserProfile } from "@/types";
 import { Loader2, Send } from "lucide-react";
+import { redirect } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { YesNo } from "../page";
@@ -48,7 +49,6 @@ export default function RequestForm(props: {
         poistion: Position;
     };
     db_fees: Fee[];
-    db_shippingtypes: ShippingType[];
     onSubmitAction: (
         data: CogsRequestFormType
     ) => Promise<{ success: boolean; message: string }>;
@@ -65,6 +65,21 @@ export default function RequestForm(props: {
         status: "Pending",
         viewed: false,
     });
+
+    function resetForm() {
+        setForm({
+            user_id: props.user.account.pkUserAccountsId,
+            certificate_gmm_file: undefined,
+            certificate_activity_file: undefined,
+            question1: undefined,
+            question2: undefined,
+            question3: undefined,
+            fee: undefined,
+            amount_due: "0.00",
+            status: "Pending",
+            viewed: false,
+        });
+    }
 
     // const user_position = props.user.poistion?.code;
     const user_position = "P1";
@@ -120,22 +135,13 @@ export default function RequestForm(props: {
             const res = await props.onSubmitAction(data);
             if (res.success) {
                 toast.success(res.message);
+                resetForm();
+                redirect("/cogs");
                 return;
             }
 
             toast.error(res.message);
         });
-        // if (data.certificate_gmm_file == undefined || data.certificate_activity_file == undefined) {
-        //     toast("Please upload a file created.");
-        //     return;
-        // }
-
-        // if (data. == undefined) {
-        //     toast("Please upload a file created.");
-        //     return;
-        // }
-
-        // console.log(data);
     }
 
     return (
@@ -158,32 +164,6 @@ export default function RequestForm(props: {
                     </SelectContent>
                 </Select>
             </div>
-            {/* {JSON.stringify(form.fee)} */}
-            {/* <div className="bg-white rounded-xl p-5">
-                <div className="mb-3">
-                    Delivery Options{" "}
-                    <span className="text-lg text-red-500">*</span>
-                </div>
-                <RadioGroup
-                    onValueChange={(value) => {}}
-                    // defaultValue={props.defaultValue}
-                >
-                    {props.db_shippingtypes.map((shippingtype) => (
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem
-                                value={`${shippingtype.pkShippingTypesId}`}
-                                id={`stype-${shippingtype.pkShippingTypesId}`}
-                            />
-                            <Label
-                                className="font-normal"
-                                htmlFor={`stype-${shippingtype.pkShippingTypesId}`}
-                            >
-                                {shippingtype.code} - {shippingtype.description}
-                            </Label>
-                        </div>
-                    ))}
-                </RadioGroup>
-            </div> */}
 
             {form.fee?.code == "COGS" && (
                 <>
@@ -243,10 +223,8 @@ export default function RequestForm(props: {
                         defaultValue={form.question3}
                     />
                     <div className="text-lg font-semibold mt-10 mb-5">
-                        <span className="font-semibold">Total Fee:</span>{" "}
-                        <span className="text-amber-600">
-                            ₱ {form.amount_due}
-                        </span>
+                        <span className="font-semibold">Total Fee:</span>
+                        <span className="text-green-600">Free</span>
                     </div>
                     <Button
                         className="bg-[#627aae] hover:bg-[#4b6cb3]"
@@ -264,13 +242,8 @@ export default function RequestForm(props: {
                             </>
                         )}
                     </Button>
-                    {/* <pre>{JSON.stringify(form, null, 2)}</pre> */}
-                    {/* {JSON.stringify(form)} */}
                 </>
             )}
-            {/* {form.fee?.code != "" && form.fee?.code != "COGS" && (
-                <>Coming soon</>
-            )} */}
         </div>
     );
 }

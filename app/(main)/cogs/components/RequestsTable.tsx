@@ -1,6 +1,4 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
+import { getUser } from "@/app/lib/dal";
 import {
     Table,
     TableBody,
@@ -10,21 +8,54 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { db_new } from "@/db/new";
+import { cogsrequest } from "@/db/new/schema";
 import { CogsRequest } from "@/types";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { eq } from "drizzle-orm";
 import { Dot } from "lucide-react";
-import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { StatusBadge } from "../request_list/[request_id]/StatusBadge";
 import UserInfo from "./UserInfo";
-import { StatusBadge } from "./[request_id]/StatusBadge";
+import ViewDetailsButton from "./ViewDetailsButton";
 
-const queryClient = new QueryClient();
-
-export default function RequestsTable({
+export default async function RequestsTable({
     requests,
 }: {
     requests: CogsRequest[];
 }) {
+    const user = await getUser();
+
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
+    const user_position: string = "P1";
+    // const user_position = user.poistion?.code;
+    async function markRequestAsViewed(requestId: number) {
+        "use server";
+
+        // await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        if (user_position == "P1") {
+            await db_new
+                .update(cogsrequest)
+                .set({ viewed: true })
+                .where(eq(cogsrequest.id, requestId));
+            revalidatePath("/cogs");
+        } else {
+            await db_new
+                .update(cogsrequest)
+                .set({ response_viewed: true })
+                .where(eq(cogsrequest.id, requestId));
+            revalidatePath("/cogs");
+        }
+
+        console.log("marked");
+        redirect(`/cogs/request_list/${requestId}`);
+    }
+
     return (
         <>
             <Table>
@@ -44,19 +75,18 @@ export default function RequestsTable({
                         <TableRow key={req.id}>
                             {/* <TableCell>{req.id}</TableCell> */}
                             <TableCell>
-                                <QueryClientProvider client={queryClient}>
-                                    <div className="flex items-center">
-                                        <UserInfo user_id={req.user_id} />
-                                        {!req.viewed && (
-                                            <Dot
-                                                size={50}
-                                                className="animate-pulse text-red-500"
-                                            />
-                                        )}
-                                    </div>
-                                </QueryClientProvider>
+                                <div className="flex items-center">
+                                    <UserInfo user_id={req.user_id} />
+                                    {!req.viewed && (
+                                        <Dot
+                                            size={50}
+                                            className="animate-pulse text-red-500"
+                                        />
+                                    )}
+                                </div>
                             </TableCell>
-                            <TableCell>₱{req.amount_due}</TableCell>
+                            {/* <TableCell>₱{req.amount_due}</TableCell> */}
+                            <TableCell>Free</TableCell>
 
                             <TableCell>
                                 <StatusBadge status={req.status} />
@@ -78,11 +108,12 @@ export default function RequestsTable({
                                     : "—"}
                             </TableCell>
                             <TableCell>
-                                <Link href={`/cogs/request_list/${req.id}`}>
-                                    <Button variant="outline" size="sm">
-                                        View Details
-                                    </Button>
-                                </Link>
+                                {/* <Link href={``}> */}
+                                <ViewDetailsButton
+                                    request={req}
+                                    onViewAction={markRequestAsViewed}
+                                />
+                                {/* </Link> */}
                             </TableCell>
                         </TableRow>
                     ))}

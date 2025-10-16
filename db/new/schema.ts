@@ -42,6 +42,7 @@ export const cogsrequest = mysqlTable("cogsrequest", {
         .notNull()
         .default("Pending"),
     viewed: boolean("viewed").default(false).notNull(),
+    response_viewed: boolean("response_viewed").default(true).notNull(),
     approved_by: bigint("approved_by", { mode: "number" }), // chapter president
     approved_at: timestamp("approved_at"),
     remarks: varchar("remarks", { length: 255 }),
