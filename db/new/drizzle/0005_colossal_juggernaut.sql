@@ -1,0 +1,1 @@
+ALTER TABLE `cogsrequest` ADD `cogs_exp_date` date;

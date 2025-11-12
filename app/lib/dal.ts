@@ -3,7 +3,11 @@ import "server-only";
 import { decrypt } from "@/app/lib/session";
 import { db_old } from "@/db/old";
 import {
+    cities,
+    citiesRegion,
+    countries,
     positions,
+    provinces,
     useraccounts,
     userpositions,
     userprofiles,
@@ -28,10 +32,12 @@ export const verifySession = cache(async () => {
     };
 });
 
-export const getUser = cache(async () => {
-    const session = await verifySession();
-    if (!session) return null;
-
+async function getUserInfo(session: {
+    isAuth: boolean;
+    userId: {};
+    userProfileId: unknown;
+}) {
+    "use cache";
     const userProfileId: number = session.userProfileId as number;
     const userId: number = session.userId as number;
 
@@ -70,4 +76,68 @@ export const getUser = cache(async () => {
     }
 
     return { userprofile, account, poistion };
+}
+
+export const getUser = cache(async () => {
+    const session = await verifySession();
+    if (!session) return null;
+
+    const user_info = await getUserInfo(session);
+
+    if (user_info === null) {
+        return null;
+    }
+
+    return {
+        userprofile: user_info.userprofile,
+        account: user_info.account,
+        poistion: user_info.poistion,
+    };
 });
+
+export async function getUserPositionCode() {
+    // "use cache";
+
+    const user = await getUser();
+    const user_position: string = "P1";
+    // const user_position = user.poistion?.code;
+
+    return user_position;
+}
+
+export async function getUserPermanentAddress(userId?: number) {
+    const auth = await getUser();
+    if (!auth) return null;
+
+    const userIdFinal = userId ? userId : auth.userprofile.pkUserProfilesId;
+
+    const userprofile = (
+        await db_old
+            .select()
+            .from(userprofiles)
+            .leftJoin(
+                citiesRegion,
+                eq(userprofiles.fkRegionId, citiesRegion.pkRegionsId)
+            )
+            .leftJoin(cities, eq(userprofiles.fkCitiesId, cities.pkCitiesId))
+            .leftJoin(
+                provinces,
+                eq(userprofiles.fkProvincesId, provinces.pkProvinces)
+            )
+            .leftJoin(
+                countries,
+                eq(userprofiles.fkCountriesId, countries.pkCountriesId)
+            )
+            .where(eq(userprofiles.pkUserProfilesId, userIdFinal))
+    )[0];
+
+    return {
+        all: `${userprofile.userprofiles.address} Brgy. ${userprofile.userprofiles.barangay}, ${userprofile.cities?.description} ${userprofile.userprofiles.zipCode}, ${userprofile.provinces?.description} ${userprofile.countries?.description}`,
+        address: userprofile.userprofiles.address,
+        barangay: userprofile.userprofiles.barangay,
+        city: userprofile.cities?.description,
+        province: userprofile.provinces?.description,
+        country: userprofile.countries?.description,
+        zipCode: userprofile.userprofiles.zipCode,
+    };
+}

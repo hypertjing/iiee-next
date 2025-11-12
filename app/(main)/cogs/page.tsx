@@ -8,6 +8,7 @@ import Link from "next/link";
 import RequestsTable from "./components/RequestsTable";
 
 export default async function page() {
+    // await sleep(2000);
     const user = await getUser();
 
     if (!user) {

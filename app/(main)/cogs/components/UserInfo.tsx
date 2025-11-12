@@ -37,6 +37,8 @@ import { eq } from "drizzle-orm";
 // }
 
 export default async function UserInfo(props: { user_id: number }) {
+    "use cache";
+
     const user_info = (
         await db_old
             .select()

@@ -1,4 +1,5 @@
-import { getUser } from "@/app/lib/dal";
+import { getUser, getUserPositionCode } from "@/app/lib/dal";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Table,
     TableBody,
@@ -16,7 +17,8 @@ import { eq } from "drizzle-orm";
 import { Dot } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { StatusBadge } from "../request_list/[request_id]/StatusBadge";
+import { Suspense } from "react";
+import { StatusBadge } from "../[request_id]/StatusBadge";
 import UserInfo from "./UserInfo";
 import ViewDetailsButton from "./ViewDetailsButton";
 
@@ -31,8 +33,8 @@ export default async function RequestsTable({
         return <div>Loading...</div>;
     }
 
-    const user_position: string = "P1";
-    // const user_position = user.poistion?.code;
+    const user_position: string = await getUserPositionCode();
+
     async function markRequestAsViewed(requestId: number) {
         "use server";
 
@@ -53,7 +55,7 @@ export default async function RequestsTable({
         }
 
         console.log("marked");
-        redirect(`/cogs/request_list/${requestId}`);
+        redirect(`/cogs/${requestId}`);
     }
 
     return (
@@ -76,7 +78,13 @@ export default async function RequestsTable({
                             {/* <TableCell>{req.id}</TableCell> */}
                             <TableCell>
                                 <div className="flex items-center">
-                                    <UserInfo user_id={req.user_id} />
+                                    <Suspense
+                                        fallback={
+                                            <Skeleton className="h-5 w-[150px]" />
+                                        }
+                                    >
+                                        <UserInfo user_id={req.user_id} />
+                                    </Suspense>
                                     {!req.viewed && (
                                         <Dot
                                             size={50}

@@ -1,6 +1,7 @@
 import {
     bigint,
     boolean,
+    date,
     decimal,
     mysqlEnum,
     mysqlTable,
@@ -45,6 +46,7 @@ export const cogsrequest = mysqlTable("cogsrequest", {
     response_viewed: boolean("response_viewed").default(true).notNull(),
     approved_by: bigint("approved_by", { mode: "number" }), // chapter president
     approved_at: timestamp("approved_at"),
+    cogs_exp_date: date("cogs_exp_date", { mode: "date" }),
     remarks: varchar("remarks", { length: 255 }),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),

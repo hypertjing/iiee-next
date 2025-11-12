@@ -1,4 +1,4 @@
-import { getUser } from "@/app/lib/dal";
+import { getUser, getUserPositionCode } from "@/app/lib/dal";
 import BackButton from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { db_new } from "@/db/new";
@@ -8,7 +8,8 @@ import { userprofiles } from "@/db/old/drizzle/schema";
 import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
-import UserInfo from "../../components/UserInfo";
+import { Suspense } from "react";
+import UserInfo from "../components/UserInfo";
 import { StatusBadge } from "./StatusBadge";
 import { ApproveButton } from "./components/ApproveButton";
 
@@ -23,7 +24,7 @@ export default async function RequestDetailsPage({
         return <div>Loading...</div>;
     }
 
-    const user_position: string = "P1";
+    const user_position = await getUserPositionCode();
     // const user_position = user.poistion?.code;
 
     const requestId = (await params).request_id;
@@ -48,7 +49,7 @@ export default async function RequestDetailsPage({
     )[0];
 
     request.amount_due = "0";
-
+    // await sleep(1000);
     return (
         <>
             <div>
@@ -59,9 +60,14 @@ export default async function RequestDetailsPage({
                 </div>
                 {request.status == "Approved" &&
                     request.user_id == user.account.pkUserAccountsId && (
-                        <div className="underline text-blue-600 p-5 bg-blue-50 mb-10 cursor-pointer">
-                            Download COGS
-                        </div>
+                        // <div className="inline-block underline text-blue-600 m-5 cursor-pointer">
+                        <Link
+                            href={`/cogs/${requestId}/view`}
+                            className="inline-block underline text-blue-600 m-5 cursor-pointer"
+                        >
+                            View your COGS
+                        </Link>
+                        // </div>
                     )}
                 <div className="px-5">
                     <div className="text-3xl">
@@ -129,7 +135,9 @@ export default async function RequestDetailsPage({
                         <div className="flex gap-2">
                             <span className="">Approved By:</span>{" "}
                             {request.approved_by ? (
-                                <UserInfo user_id={request.approved_by} />
+                                <Suspense fallback={<div>Loading...</div>}>
+                                    <UserInfo user_id={request.approved_by} />
+                                </Suspense>
                             ) : (
                                 "—"
                             )}

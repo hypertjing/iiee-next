@@ -18,6 +18,9 @@ export async function approveRequest(request: CogsRequest): Promise<{
         await logout();
     }
 
+    const cogs_exp_date = new Date();
+    cogs_exp_date.setMonth(new Date().getMonth() + 12);
+
     const update_res = await db_new
         .update(cogsrequest)
         .set({
@@ -26,6 +29,7 @@ export async function approveRequest(request: CogsRequest): Promise<{
             updated_at: new Date(Date.now()),
             approved_at: new Date(Date.now()),
             approved_by: auth?.account.pkUserAccountsId,
+            cogs_exp_date: cogs_exp_date,
         })
         .where(eq(cogsrequest.id, request.id));
 

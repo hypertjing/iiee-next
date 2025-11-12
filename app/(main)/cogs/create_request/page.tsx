@@ -112,7 +112,7 @@ export default async function CogsPage() {
     // if (user_position !== "P1" && user_position !== "P2") {
     //     return <div>Access Denied</div>;
     // }
-
+    // await sleep(1000);
     return (
         <div>
             <Link href="/cogs">
