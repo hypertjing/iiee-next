@@ -4,8 +4,13 @@ import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
 import { eq } from "drizzle-orm";
 import { Plus } from "lucide-react";
+import { Metadata } from "next";
 import Link from "next/link";
 import RequestsTable from "./components/RequestsTable";
+
+export const metadata: Metadata = {
+    title: "COGS Request",
+};
 
 export default async function page() {
     // await sleep(2000);
@@ -15,8 +20,8 @@ export default async function page() {
         return <div>Loading...</div>;
     }
 
-    const user_position: string = "P1";
-    // const user_position = user.poistion?.code;
+    // const user_position: string = "P1";
+    const user_position = user.poistion?.code;
 
     const cogs_requests = await db_new.transaction(async (tx) => {
         let cogs_requests_temp;
@@ -51,7 +56,6 @@ export default async function page() {
                         </Link>
                     </>
                 )} */}
-
                 {/* <Link href="/cogs/myrequests">
                     <NotificationButtonRequestor />
                 </Link> */}

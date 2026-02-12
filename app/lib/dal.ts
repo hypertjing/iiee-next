@@ -16,6 +16,7 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { sleep } from "@/lib/utils";
 
 export const verifySession = cache(async () => {
     const cookie = (await cookies()).get("session")?.value;
@@ -67,7 +68,7 @@ async function getUserInfo(session: {
             .select()
             .from(positions)
             .where(
-                eq(positions.pkPositionsId, user_poistion_pivot.fkPositionsId)
+                eq(positions.pkPositionsId, user_poistion_pivot.fkPositionsId),
             )
     )[0];
 
@@ -97,12 +98,15 @@ export const getUser = cache(async () => {
 
 export async function getUserPositionCode() {
     // "use cache";
-
+    // await sleep(2000);
     const user = await getUser();
-    const user_position: string = "P1";
-    // const user_position = user.poistion?.code;
 
-    return user_position;
+    if (user) {
+        const user_position = user.poistion?.code;
+        // const user_position: string = "P1";
+
+        return user_position;
+    }
 }
 
 export async function getUserPermanentAddress(userId?: number) {
@@ -117,16 +121,16 @@ export async function getUserPermanentAddress(userId?: number) {
             .from(userprofiles)
             .leftJoin(
                 citiesRegion,
-                eq(userprofiles.fkRegionId, citiesRegion.pkRegionsId)
+                eq(userprofiles.fkRegionId, citiesRegion.pkRegionsId),
             )
             .leftJoin(cities, eq(userprofiles.fkCitiesId, cities.pkCitiesId))
             .leftJoin(
                 provinces,
-                eq(userprofiles.fkProvincesId, provinces.pkProvinces)
+                eq(userprofiles.fkProvincesId, provinces.pkProvinces),
             )
             .leftJoin(
                 countries,
-                eq(userprofiles.fkCountriesId, countries.pkCountriesId)
+                eq(userprofiles.fkCountriesId, countries.pkCountriesId),
             )
             .where(eq(userprofiles.pkUserProfilesId, userIdFinal))
     )[0];

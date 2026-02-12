@@ -33,7 +33,11 @@ export default async function RequestsTable({
         return <div>Loading...</div>;
     }
 
-    const user_position: string = await getUserPositionCode();
+    const user_position = await getUserPositionCode();
+
+    if (!user) {
+        return <div>Loading user info...</div>;
+    }
 
     async function markRequestAsViewed(requestId: number) {
         "use server";
@@ -103,7 +107,7 @@ export default async function RequestsTable({
                                 {req.created_at
                                     ? format(
                                           new Date(req.created_at),
-                                          "MMM d, yyyy hh:mm a"
+                                          "MMM d, yyyy hh:mm a",
                                       )
                                     : "—"}
                             </TableCell>
@@ -111,7 +115,7 @@ export default async function RequestsTable({
                                 {req.updated_at
                                     ? format(
                                           new Date(req.updated_at),
-                                          "MMM d, yyyy hh:mm a"
+                                          "MMM d, yyyy hh:mm a",
                                       )
                                     : "—"}
                             </TableCell>

@@ -1,8 +1,13 @@
 import { db_old } from "@/db/old";
 import { chapters, regions } from "@/db/old/drizzle/schema";
 import { asc, eq } from "drizzle-orm";
+import { Metadata } from "next";
 import { Suspense } from "react";
 import Members from "./members-table/Members";
+
+export const metadata: Metadata = {
+    title: "Members",
+};
 
 export default async function MembersPage() {
     const regions_list = await db_old

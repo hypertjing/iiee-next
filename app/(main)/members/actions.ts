@@ -3,6 +3,7 @@
 import { db_old } from "@/db/old";
 import { chapters, regions, userprofiles } from "@/db/old/drizzle/schema";
 import { and, asc, eq, gt, like, lt, or, sql } from "drizzle-orm";
+import { cacheLife } from "next/cache";
 
 export type MemberStatusType = "active" | "inactive" | "all";
 
@@ -18,6 +19,7 @@ type UserProfilesActionParams = {
 
 export async function getUserProfilesAction(params: UserProfilesActionParams) {
     "use cache";
+    cacheLife("minutes");
 
     type MemberType = (typeof userprofiles.$inferSelect)["memberType"];
 
@@ -50,12 +52,20 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         status_filter = lt(userprofiles.membershipValidity, today);
     }
 
+    const searchColumns = [
+        userprofiles.fname,
+        userprofiles.mname,
+        userprofiles.lname,
+    ];
+
+    const keywords: string[] = params.keyword.split(" ");
+
+    const key_search_logic = keywords.map((keyword) =>
+        or(...searchColumns.map((col) => like(col, `%${keyword}%`)))
+    );
+
     const search_logic = and(
-        or(
-            like(userprofiles.fname, `%${params.keyword}%`),
-            like(userprofiles.mname, `%${params.keyword}%`),
-            like(userprofiles.lname, `%${params.keyword}%`)
-        ),
+        ...key_search_logic,
         regions_filter,
         chapter_filter,
         member_type_filter,

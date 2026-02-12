@@ -25,6 +25,10 @@ export default async function RequestDetailsPage({
     }
 
     const user_position = await getUserPositionCode();
+
+    if (!user_position) {
+        return <div>Loading user info...</div>;
+    }
     // const user_position = user.poistion?.code;
 
     const requestId = (await params).request_id;
@@ -78,7 +82,7 @@ export default async function RequestDetailsPage({
                             {request.created_at
                                 ? format(
                                       new Date(request.created_at),
-                                      "MMM d, yyyy hh:mm a"
+                                      "MMM d, yyyy hh:mm a",
                                   )
                                 : "—"}
                         </div>
@@ -87,7 +91,7 @@ export default async function RequestDetailsPage({
                             {request.updated_at
                                 ? format(
                                       new Date(request.updated_at),
-                                      "MMM d, yyyy hh:mm a"
+                                      "MMM d, yyyy hh:mm a",
                                   )
                                 : "—"}
                         </div>
@@ -124,7 +128,7 @@ export default async function RequestDetailsPage({
                                           minute: "numeric",
                                           second: "numeric",
                                           hour12: true,
-                                      }
+                                      },
                                   )
                                 : "—"}
                         </p>
@@ -147,7 +151,7 @@ export default async function RequestDetailsPage({
                             {request.approved_at
                                 ? format(
                                       new Date(request.approved_at),
-                                      "MMM d, yyyy hh:mm a"
+                                      "MMM d, yyyy hh:mm a",
                                   )
                                 : "—"}
                         </p>

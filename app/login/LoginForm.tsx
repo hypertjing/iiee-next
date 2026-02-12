@@ -16,7 +16,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                     <Label>Username</Label>
                     <input
-                        type="email"
+                        type="text"
                         defaultValue={state?.data?.username}
                         name="username"
                         className="w-full px-4 py-2 mb-4 border rounded-lg outline-none bg-gray-200 focus:ring-2 focus:ring-amber-400"
