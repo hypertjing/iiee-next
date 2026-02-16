@@ -40,6 +40,7 @@ export default function Member(props: {
     const [pages, setPages] = useState<number>(0);
     const [active_member, setActiveMember] = useState(0);
     const [inactive_member, setInactiveMember] = useState(0);
+    const [dormant_member, setDormantMember] = useState(0);
     const [user_profiles, setUserProfiles] = useState<MemberRegionChapter[]>(
         [],
     );
@@ -80,6 +81,7 @@ export default function Member(props: {
 
             setActiveMember(data.active_member);
             setInactiveMember(data.inactive_member);
+            setDormantMember(data.dormant_member);
 
             setUserProfiles(data.members);
             setMaxPage(data.max_page);
@@ -164,6 +166,7 @@ export default function Member(props: {
                             totalMembers={max_page}
                             activeCount={active_member}
                             inactiveCount={inactive_member}
+                            dormantCount={dormant_member}
                         />
                     </div>
                 </div>

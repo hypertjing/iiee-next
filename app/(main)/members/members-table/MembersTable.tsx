@@ -1,6 +1,5 @@
 import { Loader2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import {
     Table,
     TableBody,
@@ -22,8 +21,8 @@ export function MembersTable(props: {
 
     return (
         <>
-            <div className="overflow-hidden border rounded-md border-gray-400">
-                <Table className="overflow-hidden rounded-md border [&_th]:border [&_th]:border-gray-400 [&_td]:border [&_td]:border-gray-400">
+            <div className="overflow-hidden border rounded-md border-gray-300">
+                <Table className="overflow-hidden rounded-md border [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Region</TableHead>
@@ -101,27 +100,27 @@ export function MembersTable(props: {
                                                 data.userprofiles
                                                     .membershipValidity,
                                             ) === true && (
-                                                <Badge className="text-red-700 bg-red-100">
+                                                <div className="text-white bg-red-500 px-2 py-1 text-center">
                                                     Inactive
-                                                </Badge>
+                                                </div>
                                             )}
 
                                             {isExpired(
                                                 data.userprofiles
                                                     .membershipValidity,
                                             ) === false && (
-                                                <Badge className="text-green-800 bg-green-200">
+                                                <div className="text-white bg-green-600 px-2 py-1 text-center">
                                                     Active
-                                                </Badge>
+                                                </div>
                                             )}
 
                                             {isExpired(
                                                 data.userprofiles
                                                     .membershipValidity,
                                             ) === "dormant" && (
-                                                <Badge className="text-amber-800 bg-amber-200">
+                                                <div className="text-white bg-amber-500 px-2 py-1 text-center">
                                                     Dormant
-                                                </Badge>
+                                                </div>
                                             )}
 
                                             {/* {isExpired(
@@ -149,6 +148,9 @@ export function MembersTable(props: {
                                                     {data.userlicense.map(
                                                         (userlicense) => (
                                                             <div
+                                                                key={
+                                                                    userlicense.pkUserLicenseId
+                                                                }
                                                                 className={`${
                                                                     isExpired(
                                                                         new Date(
@@ -158,9 +160,9 @@ export function MembersTable(props: {
                                                                     !isValidDateString(
                                                                         userlicense.validityDate,
                                                                     )
-                                                                        ? "bg-rose-300 text-rose-900"
-                                                                        : "bg-green-300 text-green-900"
-                                                                } px-2 py-1 rounded-md text-sm flex justify-between gap-1`}
+                                                                        ? "text-white bg-red-600 text-center"
+                                                                        : "text-white bg-green-600 text-center"
+                                                                } px-2 py-1 flex justify-between gap-1`}
                                                             >
                                                                 <div>
                                                                     {

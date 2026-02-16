@@ -1,24 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { UserCheck, UserX } from "lucide-react";
+import { UserCheck, UserRoundMinus, UserX } from "lucide-react";
 import React from "react";
 
 interface MemberStatusDashboardProps {
     totalMembers: number;
     activeCount: number;
     inactiveCount: number;
+    dormantCount: number;
 }
 
 const MemberStatusDashboard: React.FC<MemberStatusDashboardProps> = ({
     totalMembers,
     activeCount,
     inactiveCount,
+    dormantCount,
 }) => {
     const activePercentage = totalMembers
         ? ((activeCount / totalMembers) * 100).toFixed(1)
         : 0;
     const inactivePercentage = totalMembers
         ? ((inactiveCount / totalMembers) * 100).toFixed(1)
+        : 0;
+    const dormantPercentage = totalMembers
+        ? ((dormantCount / totalMembers) * 100).toFixed(1)
         : 0;
 
     return (
@@ -71,6 +76,26 @@ const MemberStatusDashboard: React.FC<MemberStatusDashboardProps> = ({
                 />
                 <p className="text-xs text-muted-foreground">
                     {inactivePercentage}% of total members are inactive
+                </p>
+                {/* Dormant Members */}
+                <div className="flex items-center justify-between pt-3">
+                    <div className="flex items-center gap-2">
+                        <UserRoundMinus className="w-4 h-4 text-amber-600" />
+                        <span className="text-sm font-medium">
+                            Dormant Members
+                        </span>
+                    </div>
+                    <span className="text-sm font-semibold">
+                        {dormantCount}
+                    </span>
+                </div>
+                <Progress
+                    color="bg-amber-500"
+                    value={Number(dormantPercentage)}
+                    className="h-2 bg-gray-300"
+                />
+                <p className="text-xs text-muted-foreground">
+                    {dormantPercentage}% of total members are dormant
                 </p>
             </CardContent>
         </Card>
