@@ -38,6 +38,7 @@ import { eq } from "drizzle-orm";
 
 export default async function UserInfo(props: { user_id: number }) {
     "use cache";
+    // await sleep(1000 + Math.random() * 5000);
 
     const user_info = (
         await db_old

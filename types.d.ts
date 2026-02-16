@@ -6,12 +6,14 @@ import {
     regions,
     shippingtypes,
     useraccounts,
+    userlicense,
     userpositions,
     userprofiles,
 } from "./db/old/drizzle/schema";
 
 export type UserAccount = typeof useraccounts.$inferSelect;
 export type UserProfile = typeof userprofiles.$inferSelect;
+export type UserLicense = typeof userlicense.$inferSelect;
 export type MemberRegions = typeof regions.$inferSelect;
 export type MemberChapters = typeof chapters.$inferSelect;
 
@@ -20,6 +22,7 @@ export type UserPosition = typeof userpositions.$inferSelect;
 
 export type MemberRegionChapter = {
     userprofiles: UserProfile;
+    userlicense: UserLicense[] | null;
     chapter: MemberChapters | null;
     region: MemberRegions | null;
 };

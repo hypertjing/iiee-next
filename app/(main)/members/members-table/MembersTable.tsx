@@ -9,7 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { isExpired } from "@/lib/utils";
+import { isExpired, isValidDateString } from "@/lib/utils";
 import { MemberRegionChapter } from "@/types";
 import { format } from "date-fns";
 
@@ -22,20 +22,18 @@ export function MembersTable(props: {
 
     return (
         <>
-            <div className="overflow-hidden rounded-md border">
-                <Table>
+            <div className="overflow-hidden border rounded-md border-gray-400">
+                <Table className="overflow-hidden rounded-md border [&_th]:border [&_th]:border-gray-400 [&_td]:border [&_td]:border-gray-400">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Region</TableHead>
                             <TableHead>Chapter</TableHead>
                             <TableHead>Last Name</TableHead>
-                            <TableHead>First Name</TableHead>
-                            <TableHead>Middle Name</TableHead>
-                            {/* <TableHead>Email</TableHead> */}
                             <TableHead>Member Type</TableHead>
                             <TableHead>Member No.</TableHead>
                             <TableHead>Validity</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>License</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody className="relative">
@@ -56,66 +54,79 @@ export function MembersTable(props: {
                                 {data.map((data) => (
                                     <TableRow
                                         key={data.userprofiles.pkUserProfilesId}
-                                        className="hover:bg-blue-100"
+                                        className="hover:bg-sky-100"
                                     >
-                                        <TableCell>
+                                        <TableCell className="align-top">
                                             {data.region?.description}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="align-top">
                                             {data.chapter?.description || "N/A"}
                                         </TableCell>
-                                        <TableCell>
-                                            {data.userprofiles.lname}
-                                        </TableCell>
-                                        <TableCell>
-                                            {data.userprofiles.fname}
-                                        </TableCell>
-                                        <TableCell>
+                                        <TableCell className="align-top">
+                                            {data.userprofiles.lname},{" "}
+                                            {data.userprofiles.fname}{" "}
                                             {data.userprofiles.mname}
                                         </TableCell>
-                                        {/* <TableCell>
-                                            {data.userprofiles.email}
-                                        </TableCell> */}
-                                        <TableCell>
+                                        <TableCell className="align-top">
                                             {data.userprofiles.memberType}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="align-top">
                                             {data.userprofiles.membershipNo}
                                         </TableCell>
-                                        <TableCell
-                                            className={`flex items-center gap-2 ${
-                                                isExpired(
-                                                    data.userprofiles
-                                                        .membershipValidity
-                                                )
-                                                    ? "text-red-600"
-                                                    : ""
-                                            }`}
-                                        >
-                                            {data.userprofiles.membershipValidity.getFullYear() !=
-                                            3000
-                                                ? format(
-                                                      new Date(
-                                                          data.userprofiles.membershipValidity
-                                                      ),
-                                                      "MMM d, yyyy"
-                                                  )
-                                                : "Life"}
-                                            {/* {isExpired(
-                                                data.userprofiles
-                                                    .membershipValidity
-                                            ) && (
-                                                <>
-                                                    <Badge className="bg-red-600">
-                                                        Expired
-                                                    </Badge>
-                                                </>
-                                            )} */}
+                                        <TableCell className="align-top">
+                                            <div
+                                                className={` ${
+                                                    isExpired(
+                                                        data.userprofiles
+                                                            .membershipValidity,
+                                                    )
+                                                        ? "text-red-600"
+                                                        : ""
+                                                }`}
+                                            >
+                                                {data.userprofiles.membershipValidity.getFullYear() !=
+                                                3000
+                                                    ? format(
+                                                          new Date(
+                                                              data.userprofiles
+                                                                  .membershipValidity,
+                                                          ),
+                                                          "MMM d, yyyy",
+                                                      )
+                                                    : "Life"}
+                                            </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="align-top">
                                             {isExpired(
                                                 data.userprofiles
-                                                    .membershipValidity
+                                                    .membershipValidity,
+                                            ) === true && (
+                                                <Badge className="text-red-700 bg-red-100">
+                                                    Inactive
+                                                </Badge>
+                                            )}
+
+                                            {isExpired(
+                                                data.userprofiles
+                                                    .membershipValidity,
+                                            ) === false && (
+                                                <Badge className="text-green-800 bg-green-200">
+                                                    Active
+                                                </Badge>
+                                            )}
+
+                                            {isExpired(
+                                                data.userprofiles
+                                                    .membershipValidity,
+                                            ) === "dormant" && (
+                                                <Badge className="text-amber-800 bg-amber-200">
+                                                    Dormant
+                                                </Badge>
+                                            )}
+
+                                            {/* {isExpired(
+                                                data.userprofiles
+                                                    .membershipValidity,
                                             ) ? (
                                                 <>
                                                     <Badge className="text-red-700 bg-red-100">
@@ -128,6 +139,65 @@ export function MembersTable(props: {
                                                         Active
                                                     </Badge>
                                                 </>
+                                            )} */}
+                                        </TableCell>
+                                        <TableCell className="align-top">
+                                            {data.userlicense == null ? (
+                                                "No license"
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    {data.userlicense.map(
+                                                        (userlicense) => (
+                                                            <div
+                                                                className={`${
+                                                                    isExpired(
+                                                                        new Date(
+                                                                            userlicense.validityDate,
+                                                                        ),
+                                                                    ) ||
+                                                                    !isValidDateString(
+                                                                        userlicense.validityDate,
+                                                                    )
+                                                                        ? "bg-rose-300 text-rose-900"
+                                                                        : "bg-green-300 text-green-900"
+                                                                } px-2 py-1 rounded-md text-sm flex justify-between gap-1`}
+                                                            >
+                                                                <div>
+                                                                    {
+                                                                        userlicense.licenseType
+                                                                    }{" "}
+                                                                    {
+                                                                        userlicense.licenseNo
+                                                                    }
+                                                                </div>
+                                                                <div>
+                                                                    {isValidDateString(
+                                                                        userlicense.validityDate,
+                                                                    ) ? (
+                                                                        Intl.DateTimeFormat(
+                                                                            undefined,
+                                                                            {
+                                                                                month: "short",
+                                                                                day: "2-digit",
+                                                                                year: "numeric",
+                                                                            },
+                                                                        ).format(
+                                                                            new Date(
+                                                                                userlicense.validityDate,
+                                                                            ),
+                                                                        )
+                                                                    ) : (
+                                                                        <span>
+                                                                            Invalid
+                                                                            Expiry
+                                                                            Date
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
                                             )}
                                         </TableCell>
                                     </TableRow>

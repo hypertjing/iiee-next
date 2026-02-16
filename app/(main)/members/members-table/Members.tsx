@@ -13,7 +13,11 @@ import {
 import { MemberChapters, MemberRegionChapter, MemberRegions } from "@/types";
 import { Loader2, Search, Users } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
-import { getUserProfilesAction, MemberStatusType } from "../actions";
+import {
+    getUserProfilesAction,
+    LicenseType,
+    MemberStatusType,
+} from "../actions";
 import MemberStatusDashboard from "../dashboard/MemberStatusDashboard";
 import { MembersTable } from "./MembersTable";
 import MembersTablePagination from "./MembersTablePagination";
@@ -26,6 +30,8 @@ export default function Member(props: {
     const [member_chapters, setMemberChapters] = useState("all");
     const [member_type, setMemberType] = useState("all");
     const [member_status, setMemberStatus] = useState<MemberStatusType>("all");
+    const [license_type, setLicenseType] = useState<LicenseType>("all");
+
     const [keyword, setKeyword] = useState("");
     const [max_page, setMaxPage] = useState(0);
     const [limit, setLimit] = useState(10);
@@ -35,7 +41,7 @@ export default function Member(props: {
     const [active_member, setActiveMember] = useState(0);
     const [inactive_member, setInactiveMember] = useState(0);
     const [user_profiles, setUserProfiles] = useState<MemberRegionChapter[]>(
-        []
+        [],
     );
     const [pending, startTransition] = useTransition();
 
@@ -50,6 +56,7 @@ export default function Member(props: {
                 region: member_regions,
                 chapter: member_chapters,
                 member_type,
+                license_type: license_type,
                 status: member_status,
                 offset,
                 limit,
@@ -128,6 +135,10 @@ export default function Member(props: {
 
     useEffect(() => {
         getUserProfiles();
+    }, [license_type]);
+
+    useEffect(() => {
+        getUserProfiles();
     }, [offset]);
 
     useEffect(() => {
@@ -142,6 +153,34 @@ export default function Member(props: {
 
     return (
         <>
+            <div className="mb-10 flex gap-2 w-[400px]">
+                <div className="w-full">
+                    <div className="text-lg font-semibold flex items-center gap-2 mb-5">
+                        <Users className="w-5 h-5 text-blue-500" />
+                        Member Overview
+                    </div>
+                    <div className="">
+                        <MemberStatusDashboard
+                            totalMembers={max_page}
+                            activeCount={active_member}
+                            inactiveCount={inactive_member}
+                        />
+                    </div>
+                </div>
+                {/* <div className="w-full ">
+                    <div className="text-lg font-semibold flex items-center gap-2 mb-5">
+                        <Users className="w-5 h-5 text-blue-500" />
+                        License Status Overview
+                    </div>
+                    <div className="">
+                        <MemberStatusDashboard
+                            totalMembers={max_page}
+                            activeCount={active_member}
+                            inactiveCount={inactive_member}
+                        />
+                    </div>
+                </div> */}
+            </div>
             {/* Search filters  */}
             <div className="flex flex-col gap-2">
                 <Label>Search</Label>
@@ -266,6 +305,30 @@ export default function Member(props: {
                                 <SelectItem value={"inactive"}>
                                     Inactive
                                 </SelectItem>
+                                <SelectItem value={"dormant"}>
+                                    Dormant
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <Label>License Type</Label>
+                        <Select
+                            onValueChange={(value: LicenseType) =>
+                                setLicenseType(value)
+                            }
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Chapter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={"all"}>All</SelectItem>
+                                <SelectItem value={"BSEE"}>BSEE</SelectItem>
+                                <SelectItem value={"RME"}>RME</SelectItem>
+                                <SelectItem value={"REE"}>REE</SelectItem>
+                                <SelectItem value={"PEE"}>PEE</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -288,6 +351,7 @@ export default function Member(props: {
                     </Select>
                 </div>
             </div>
+
             <MembersTable
                 pending={pending}
                 data={user_profiles}
@@ -306,19 +370,6 @@ export default function Member(props: {
                     />
                 </>
             )}
-            <div>
-                <div className="text-lg font-semibold flex items-center gap-2 mb-5">
-                    <Users className="w-5 h-5 text-blue-500" />
-                    Member Overview
-                </div>
-                <div className="w-1/3">
-                    <MemberStatusDashboard
-                        totalMembers={max_page}
-                        activeCount={active_member}
-                        inactiveCount={inactive_member}
-                    />
-                </div>
-            </div>
         </>
     );
 }

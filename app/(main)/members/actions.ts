@@ -1,17 +1,30 @@
 "use server";
 
 import { db_old } from "@/db/old";
-import { chapters, regions, userprofiles } from "@/db/old/drizzle/schema";
+import {
+    chapters,
+    regions,
+    userlicense,
+    userprofiles,
+} from "@/db/old/drizzle/schema";
+import {
+    MemberChapters,
+    MemberRegions,
+    UserLicense,
+    UserProfile,
+} from "@/types";
 import { and, asc, eq, gt, like, lt, or, sql } from "drizzle-orm";
 import { cacheLife } from "next/cache";
 
-export type MemberStatusType = "active" | "inactive" | "all";
+export type MemberStatusType = "active" | "inactive" | "dormant" | "all";
+export type LicenseType = "RME" | "REE" | "PEE" | "BSEE" | "all";
 
 type UserProfilesActionParams = {
     keyword: string;
     region: string;
     chapter: string;
     member_type: string;
+    license_type: LicenseType;
     offset: number;
     limit: number;
     status: MemberStatusType;
@@ -22,10 +35,12 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
     cacheLife("minutes");
 
     type MemberType = (typeof userprofiles.$inferSelect)["memberType"];
+    type LicenseDBType = (typeof userlicense.$inferSelect)["licenseType"];
 
     const member_type = params.member_type as MemberType;
     const region = params.region;
     const chapter = params.chapter;
+    const license_type = params.license_type as LicenseDBType;
 
     let member_type_filter = eq(userprofiles.memberType, member_type);
     if (params.member_type === "all") {
@@ -45,11 +60,19 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
     }
 
     const today = new Date();
+    const date_2016 = new Date("2016-01-01");
     let status_filter = sql`1 = 1`;
     if (params.status === "active") {
         status_filter = gt(userprofiles.membershipValidity, today);
     } else if (params.status === "inactive") {
         status_filter = lt(userprofiles.membershipValidity, today);
+    } else if (params.status === "dormant") {
+        status_filter = lt(userprofiles.membershipValidity, date_2016);
+    }
+
+    let license_filter = like(userlicense.licenseType, "%%");
+    if (params.license_type != "all") {
+        license_filter = eq(userlicense.licenseType, license_type);
     }
 
     const searchColumns = [
@@ -61,7 +84,7 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
     const keywords: string[] = params.keyword.split(" ");
 
     const key_search_logic = keywords.map((keyword) =>
-        or(...searchColumns.map((col) => like(col, `%${keyword}%`)))
+        or(...searchColumns.map((col) => like(col, `%${keyword}%`))),
     );
 
     const search_logic = and(
@@ -69,16 +92,23 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         regions_filter,
         chapter_filter,
         member_type_filter,
-        status_filter
+        status_filter,
+        license_filter,
     );
 
     // const max_page = await db.$count(userprofiles, search_logic);
-    const [max_page] = await db_old
-        .select({ count: sql<number>`count(*)` })
+
+    const max_page = await db_old
+        .select()
         .from(userprofiles)
         .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
         .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
-        .where(search_logic);
+        .leftJoin(
+            userlicense,
+            eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
+        )
+        .where(search_logic)
+        .groupBy(userprofiles.pkUserProfilesId);
 
     const active_member = (
         await db_old
@@ -86,7 +116,12 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
             .from(userprofiles)
             .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
             .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
+            .leftJoin(
+                userlicense,
+                eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
+            )
             .where(search_logic)
+            .groupBy(userprofiles.pkUserProfilesId)
     ).filter((row) => row.membershipValidity >= today).length;
 
     const inactive_member = (
@@ -95,35 +130,77 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
             .from(userprofiles)
             .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
             .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
+            .leftJoin(
+                userlicense,
+                eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
+            )
             .where(search_logic)
+            .groupBy(userprofiles.pkUserProfilesId)
     ).filter((row) => row.membershipValidity < today).length;
 
-    const members = (
+    const members: {
+        userlicense: UserLicense[] | null;
+        userprofiles: UserProfile;
+        chapter: MemberChapters | null;
+        region: MemberRegions | null;
+    }[] = (
         await db_old
             .select()
             .from(userprofiles)
             .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
             .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
+            .leftJoin(
+                userlicense,
+                eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
+            )
             .where(search_logic)
             .orderBy(
                 asc(userprofiles.lname),
                 asc(userprofiles.fname),
-                asc(userprofiles.mname)
+                asc(userprofiles.mname),
             )
             .offset(params.offset)
             .limit(params.limit)
+            .groupBy(userprofiles.pkUserProfilesId)
     ).map((row) => {
         return {
+            userlicense: null,
             userprofiles: row.userprofiles,
             chapter: row.chapters,
             region: row.regions,
         };
     });
 
+    console.log("params.offset", params.offset);
+    console.log("params.limit", params.limit);
+
+    for (let member of members) {
+        member.userlicense = await getUserLicenseInfo(
+            member.userprofiles.pkUserProfilesId,
+        );
+    }
+
+    console.log("max_page", max_page.length);
+
     return {
         members,
-        max_page: max_page.count,
+        max_page: max_page.length,
         active_member,
         inactive_member,
     };
+}
+
+async function getUserLicenseInfo(
+    pk_userprofiles_id: number,
+): Promise<UserLicense[] | null> {
+    const data = await db_old
+        .select()
+        .from(userlicense)
+        .where(eq(userlicense.fkUserProfilesId, pk_userprofiles_id));
+
+    if (data.length > 0) {
+        return data;
+    }
+
+    return null;
 }

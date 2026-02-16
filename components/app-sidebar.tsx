@@ -56,6 +56,15 @@ export async function AppSidebar() {
 
     const { userprofile, account } = auth;
 
+    const date_now = new Date(Date.now());
+    // const exp_test = new Date(Date.now());
+    // exp_test.setFullYear(2024);
+
+    if (date_now > userprofile.membershipValidity) {
+        redirect("/membership_expired");
+        console.log(userprofile.membershipValidity, date_now);
+    }
+
     // const notification_count = await db_new.$count(
     //     cogsrequest,
     //     eq(cogsrequest.viewed, false)
@@ -69,15 +78,15 @@ export async function AppSidebar() {
         if (user_position == "P1") {
             cogs_requests_temp = await tx.$count(
                 cogsrequest,
-                eq(cogsrequest.viewed, false)
+                eq(cogsrequest.viewed, false),
             );
         } else {
             cogs_requests_temp = await tx.$count(
                 cogsrequest,
                 and(
                     eq(cogsrequest.response_viewed, false),
-                    eq(cogsrequest.user_id, auth.account.pkUserAccountsId)
-                )
+                    eq(cogsrequest.user_id, auth.account.pkUserAccountsId),
+                ),
             );
         }
 
@@ -116,6 +125,22 @@ export async function AppSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
+                        <div className="flex flex-col px-2">
+                            <div className="text-xs">Membership Validity</div>
+                            {userprofile.memberType === "Life" ? (
+                                userprofile.memberType
+                            ) : (
+                                <>
+                                    {Intl.DateTimeFormat(undefined, {
+                                        month: "long",
+                                        day: "2-digit",
+                                        year: "numeric",
+                                    }).format(userprofile.membershipValidity)}
+                                </>
+                            )}
+                        </div>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton
@@ -126,7 +151,7 @@ export async function AppSidebar() {
                                         <AvatarImage src="https://github.com/shadcn.png" />
                                         <AvatarFallback>
                                             {getInitials(
-                                                `${account.fname} ${account.lname}`
+                                                `${account.fname} ${account.lname}`,
                                             )}
                                         </AvatarFallback>
                                     </Avatar>
