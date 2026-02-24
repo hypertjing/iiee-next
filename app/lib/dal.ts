@@ -13,10 +13,10 @@ import {
     userprofiles,
 } from "@/db/old/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { cacheLife } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { sleep } from "@/lib/utils";
 
 export const verifySession = cache(async () => {
     const cookie = (await cookies()).get("session")?.value;
@@ -39,6 +39,8 @@ async function getUserInfo(session: {
     userProfileId: unknown;
 }) {
     "use cache";
+    cacheLife("minutes");
+
     const userProfileId: number = session.userProfileId as number;
     const userId: number = session.userId as number;
 

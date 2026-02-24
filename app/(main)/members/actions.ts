@@ -13,7 +13,20 @@ import {
     UserLicense,
     UserProfile,
 } from "@/types";
-import { and, asc, eq, gt, like, lt, lte, or, sql } from "drizzle-orm";
+import {
+    and,
+    asc,
+    countDistinct,
+    eq,
+    gt,
+    gte,
+    like,
+    lt,
+    lte,
+    or,
+    sql,
+} from "drizzle-orm";
+import { cacheLife } from "next/cache";
 
 export type MemberStatusType = "active" | "inactive" | "dormant" | "all";
 export type LicenseType = "RME" | "REE" | "PEE" | "BSEE" | "all";
@@ -30,8 +43,8 @@ type UserProfilesActionParams = {
 };
 
 export async function getUserProfilesAction(params: UserProfilesActionParams) {
-    // "use cache";
-    // cacheLife("minutes");
+    "use cache";
+    cacheLife("minutes");
 
     type MemberType = (typeof userprofiles.$inferSelect)["memberType"];
     type LicenseDBType = (typeof userlicense.$inferSelect)["licenseType"];
@@ -46,11 +59,16 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         member_type_filter = like(userprofiles.memberType, "%%");
     }
 
+    // let regions_filter = eq(regions.code, region);
+    // if (params.region === "all") {
+    //     regions_filter = eq(regions.code, "NL");
+    // } else if (params.region != "NL") {
+    //     regions_filter = like(regions.code, "%xxx%");
+    // }
+
     let regions_filter = eq(regions.code, region);
     if (params.region === "all") {
-        regions_filter = eq(regions.code, "NL");
-    } else if (params.region != "NL") {
-        regions_filter = like(regions.code, "%xxx%");
+        regions_filter = like(regions.code, "%%");
     }
 
     let chapter_filter = eq(chapters.code, chapter);
@@ -99,10 +117,8 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         license_filter,
     );
 
-    // const max_page = await db.$count(userprofiles, search_logic);
-
-    const max_page = await db_old
-        .select()
+    const active_member = await db_old
+        .select({ count: countDistinct(userprofiles.pkUserProfilesId) })
         .from(userprofiles)
         .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
         .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
@@ -110,54 +126,39 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
             userlicense,
             eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
         )
-        .where(search_logic)
-        .groupBy(userprofiles.pkUserProfilesId);
+        .where(and(search_logic, gte(userprofiles.membershipValidity, today)));
 
-    const active_member = (
-        await db_old
-            .select({ membershipValidity: userprofiles.membershipValidity })
-            .from(userprofiles)
-            .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
-            .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
-            .leftJoin(
-                userlicense,
-                eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
-            )
-            .where(search_logic)
-            .groupBy(userprofiles.pkUserProfilesId)
-    ).filter((row) => row.membershipValidity >= today).length;
+    const inactive_member = await db_old
+        .select({ count: countDistinct(userprofiles.pkUserProfilesId) })
+        .from(userprofiles)
+        .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
+        .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
+        .leftJoin(
+            userlicense,
+            eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
+        )
+        .where(
+            and(
+                search_logic,
+                and(
+                    lt(userprofiles.membershipValidity, today),
+                    gt(userprofiles.membershipValidity, date_2016),
+                ),
+            ),
+        );
 
-    const inactive_member = (
-        await db_old
-            .select({ membershipValidity: userprofiles.membershipValidity })
-            .from(userprofiles)
-            .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
-            .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
-            .leftJoin(
-                userlicense,
-                eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
-            )
-            .where(search_logic)
-            .groupBy(userprofiles.pkUserProfilesId)
-    ).filter(
-        (row) =>
-            row.membershipValidity < today &&
-            row.membershipValidity > date_2016,
-    ).length;
-
-    const dormant_member = (
-        await db_old
-            .select({ membershipValidity: userprofiles.membershipValidity })
-            .from(userprofiles)
-            .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
-            .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
-            .leftJoin(
-                userlicense,
-                eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
-            )
-            .where(search_logic)
-            .groupBy(userprofiles.pkUserProfilesId)
-    ).filter((row) => row.membershipValidity <= date_2016).length;
+    const dormant_member = await db_old
+        .select({ count: countDistinct(userprofiles.pkUserProfilesId) })
+        .from(userprofiles)
+        .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
+        .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
+        .leftJoin(
+            userlicense,
+            eq(userprofiles.pkUserProfilesId, userlicense.fkUserProfilesId),
+        )
+        .where(
+            and(search_logic, lte(userprofiles.membershipValidity, date_2016)),
+        );
 
     const members: {
         userlicense: UserLicense[] | null;
@@ -192,30 +193,32 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         };
     });
 
-    console.log("params.offset", params.offset);
-    console.log("params.limit", params.limit);
-
     for (let member of members) {
         member.userlicense = await getUserLicenseInfo(
             member.userprofiles.pkUserProfilesId,
         );
     }
 
-    console.log("max_page", max_page.length);
-    console.log("dormant_member", dormant_member);
+    const max_page =
+        active_member[0].count +
+        inactive_member[0].count +
+        dormant_member[0].count;
 
     return {
         members,
-        max_page: max_page.length,
-        active_member,
-        inactive_member,
-        dormant_member,
+        max_page: max_page,
+        active_member: active_member[0].count,
+        inactive_member: inactive_member[0].count,
+        dormant_member: dormant_member[0].count,
     };
 }
 
 async function getUserLicenseInfo(
     pk_userprofiles_id: number,
 ): Promise<UserLicense[] | null> {
+    "use cache";
+    cacheLife("minutes");
+
     const data = await db_old
         .select()
         .from(userlicense)

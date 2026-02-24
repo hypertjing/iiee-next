@@ -1,6 +1,7 @@
 import {
     bigint,
     boolean,
+    char,
     date,
     decimal,
     mysqlEnum,
@@ -50,4 +51,12 @@ export const cogsrequest = mysqlTable("cogsrequest", {
     remarks: varchar("remarks", { length: 255 }),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export const sanitization_remarks = mysqlTable("sanitization_remarks", {
+    id: bigint({ mode: "number" }).autoincrement().primaryKey(),
+    user_id: bigint({ mode: "number" }).notNull(),
+    remarks: char({ length: 255 }).notNull(),
+    created_at: timestamp().defaultNow().notNull(),
+    updated_at: timestamp().defaultNow().onUpdateNow().notNull(),
 });

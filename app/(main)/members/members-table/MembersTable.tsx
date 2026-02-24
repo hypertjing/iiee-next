@@ -1,5 +1,6 @@
-import { Loader2 } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
     Table,
     TableBody,
@@ -11,6 +12,8 @@ import {
 import { isExpired, isValidDateString } from "@/lib/utils";
 import { MemberRegionChapter } from "@/types";
 import { format } from "date-fns";
+import Link from "next/link";
+import MemberSanitizationRemarks from "./MemberSanitizationRemarks";
 
 export function MembersTable(props: {
     data: MemberRegionChapter[];
@@ -25,26 +28,29 @@ export function MembersTable(props: {
                 <Table className="overflow-hidden rounded-md border [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
                     <TableHeader>
                         <TableRow>
+                            <TableHead>Remarks</TableHead>
+
                             <TableHead>Region</TableHead>
                             <TableHead>Chapter</TableHead>
-                            <TableHead>Last Name</TableHead>
+                            {/* <TableHead>Full Name</TableHead> */}
                             <TableHead>Member Type</TableHead>
                             <TableHead>Member No.</TableHead>
                             <TableHead>Validity</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>License</TableHead>
+                            <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody className="relative">
                         {props.pending && (
-                            <TableRow className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center">
-                                <TableCell
-                                    colSpan={9}
-                                    className="flex items-center gap-2"
+                            <TableRow className="border-0 absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center">
+                                <div
+                                    // colSpan={9}
+                                    className="flex items-center gap-2 border-0"
                                 >
                                     <Loader2 className="animate-spin text-blue-500" />{" "}
                                     Loading...
-                                </TableCell>
+                                </div>
                             </TableRow>
                         )}
 
@@ -56,16 +62,25 @@ export function MembersTable(props: {
                                         className="hover:bg-sky-100"
                                     >
                                         <TableCell className="align-top">
+                                            <MemberSanitizationRemarks
+                                                member_id={
+                                                    data.userprofiles
+                                                        .pkUserProfilesId
+                                                }
+                                            />
+                                        </TableCell>
+
+                                        <TableCell className="align-top">
                                             {data.region?.description}
                                         </TableCell>
                                         <TableCell className="align-top">
                                             {data.chapter?.description || "N/A"}
                                         </TableCell>
-                                        <TableCell className="align-top">
+                                        {/* <TableCell className="align-top">
                                             {data.userprofiles.lname},{" "}
                                             {data.userprofiles.fname}{" "}
                                             {data.userprofiles.mname}
-                                        </TableCell>
+                                        </TableCell> */}
                                         <TableCell className="align-top">
                                             {data.userprofiles.memberType}
                                         </TableCell>
@@ -190,9 +205,12 @@ export function MembersTable(props: {
                                                                         )
                                                                     ) : (
                                                                         <span>
-                                                                            Invalid
+                                                                            {/* Invalid
                                                                             Expiry
-                                                                            Date
+                                                                            Date */}
+                                                                            {
+                                                                                userlicense.validityDate
+                                                                            }
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -202,14 +220,26 @@ export function MembersTable(props: {
                                                 </div>
                                             )}
                                         </TableCell>
+                                        <TableCell className="align-top">
+                                            <Link
+                                                href={`/members/${data.userprofiles.pkUserProfilesId}`}
+                                            >
+                                                <Button
+                                                    variant={"outline"}
+                                                    size={"sm"}
+                                                >
+                                                    <Eye />
+                                                </Button>
+                                            </Link>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </>
                         ) : (
-                            <TableRow>
+                            <TableRow className="border-0">
                                 <TableCell
                                     colSpan={9}
-                                    className="h-24 text-center"
+                                    className="h-24 text-center border-0"
                                 >
                                     No results.
                                 </TableCell>

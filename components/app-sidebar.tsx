@@ -62,7 +62,7 @@ export async function AppSidebar() {
 
     if (date_now > userprofile.membershipValidity) {
         redirect("/membership_expired");
-        console.log(userprofile.membershipValidity, date_now);
+        // console.log(userprofile.membershipValidity, date_now);
     }
 
     // const notification_count = await db_new.$count(
@@ -124,7 +124,7 @@ export async function AppSidebar() {
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
-                    <SidebarMenuItem>
+                    {/* <SidebarMenuItem>
                         <div className="flex flex-col px-2">
                             <div className="text-xs">Membership Validity</div>
                             {userprofile.memberType === "Life" ? (
@@ -139,7 +139,7 @@ export async function AppSidebar() {
                                 </>
                             )}
                         </div>
-                    </SidebarMenuItem>
+                    </SidebarMenuItem> */}
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

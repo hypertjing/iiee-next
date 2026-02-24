@@ -27,7 +27,15 @@ export type MemberRegionChapter = {
     region: MemberRegions | null;
 };
 
+export type User = {
+    userprofile: UserProfile;
+    account: UserAccount;
+    poistion: Position;
+};
+
 export type CogsRequest = typeof cogsrequest.$inferSelect;
 export type CogsRequestForm = typeof cogsrequest.$inferInsert;
 export type Fee = typeof fees.$inferSelect;
 export type ShippingType = typeof shippingtypes.$inferSelect;
+
+export type SanitizationRemarksType = "tbd" | "r" | "hns";

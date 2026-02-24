@@ -1,7 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { db_old } from "@/db/old";
-import { userprofiles } from "@/db/old/drizzle/schema";
+import {
+    cities,
+    countries,
+    provinces,
+    userprofiles,
+} from "@/db/old/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 // Example user (replace with API/db fetch)
@@ -21,10 +26,49 @@ export default async function ProfilePage({
             .limit(1)
     )[0];
 
+    const city = (
+        await db_old
+            .select()
+            .from(cities)
+            .where(eq(cities.pkCitiesId, profile.fkCitiesId))
+    )[0];
+
+    const province = (
+        await db_old
+            .select()
+            .from(provinces)
+            .where(eq(provinces.pkProvinces, profile.fkProvincesId))
+    )[0];
+
+    const country = (
+        await db_old
+            .select()
+            .from(countries)
+            .where(eq(countries.pkCountriesId, profile.fkCountriesId))
+    )[0];
+
     // const user: UserAccount = member_data[0] as unknown as UserAccount;
 
+    function calculateAge(birthDate: Date, referenceDate = new Date()) {
+        const dob = new Date(birthDate);
+        const ref = new Date(referenceDate);
+
+        let age = ref.getFullYear() - dob.getFullYear();
+
+        const monthDifference = ref.getMonth() - dob.getMonth();
+
+        if (
+            monthDifference < 0 ||
+            (monthDifference === 0 && ref.getDate() < dob.getDate())
+        ) {
+            age--;
+        }
+
+        return age;
+    }
+
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen">
             {/* Page Title */}
             <h1 className="text-3xl font-bold mb-6">
                 {profile.fname} {profile.mname} {profile.lname} {profile.suffix}
@@ -33,11 +77,7 @@ export default async function ProfilePage({
             {/* Status */}
             <div className="mb-6">
                 <Badge
-                    variant={
-                        profile.akUserProfilesFlag === "Verified"
-                            ? "default"
-                            : "secondary"
-                    }
+                    className={`${profile.akUserProfilesFlag === "Verified" ? "bg-green-600" : "bg-red-600"}`}
                 >
                     {profile.akUserProfilesFlag}
                 </Badge>
@@ -56,6 +96,12 @@ export default async function ProfilePage({
                         <p>{profile.bdate.toDateString()}</p>
                     </div>
                     <div>
+                        <p className="font-medium">Age</p>
+                        <p>
+                            {calculateAge(profile.bdate, new Date(Date.now()))}
+                        </p>
+                    </div>
+                    <div>
                         <p className="font-medium">Birthplace</p>
                         <p>{profile.bplace}</p>
                     </div>
@@ -69,6 +115,17 @@ export default async function ProfilePage({
                     </div>
                 </div>
             </section>
+            <Separator className="my-6" />
+
+            <div className="space-y-2">
+                <h2 className="text-xl font-semibold mb-2">Address</h2>
+                <div className="grid grid-cols-2 gap-6 text-sm">
+                    <div>
+                        {profile.barangay}, {city.description},{" "}
+                        {province.description}, {country.description}{" "}
+                    </div>
+                </div>
+            </div>
 
             <Separator className="my-6" />
 
@@ -113,7 +170,18 @@ export default async function ProfilePage({
                     </div>
                     <div>
                         <p className="font-medium">Industry</p>
-                        <p>{profile.industry}</p>
+                        <p className="flex gap-2">
+                            {profile.industry
+                                .split("|")
+                                .filter((item) => {
+                                    return item != "";
+                                })
+                                .map((item) => (
+                                    <div className="bg-gray-100 px-3 py-1 rounded-md">
+                                        {item}
+                                    </div>
+                                ))}
+                        </p>
                     </div>
                     <div>
                         <p className="font-medium">Sector</p>
