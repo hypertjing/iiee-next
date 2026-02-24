@@ -55,7 +55,7 @@ export const cogsrequest = mysqlTable("cogsrequest", {
 
 export const sanitization_remarks = mysqlTable("sanitization_remarks", {
     id: bigint({ mode: "number" }).autoincrement().primaryKey(),
-    user_id: bigint({ mode: "number" }).notNull(),
+    member_id: bigint({ mode: "number" }).notNull(),
     remarks: char({ length: 255 }).notNull(),
     created_at: timestamp().defaultNow().notNull(),
     updated_at: timestamp().defaultNow().onUpdateNow().notNull(),

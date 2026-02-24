@@ -1,0 +1,1 @@
+ALTER TABLE `sanitization_remarks` RENAME COLUMN `user_id` TO `member_id`;

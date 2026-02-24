@@ -1,4 +1,4 @@
-import { cogsrequest } from "./db/new/schema";
+import { cogsrequest, sanitization_remarks } from "./db/new/schema";
 import {
     chapters,
     fees,
@@ -39,3 +39,6 @@ export type Fee = typeof fees.$inferSelect;
 export type ShippingType = typeof shippingtypes.$inferSelect;
 
 export type SanitizationRemarksType = "tbd" | "r" | "hns";
+
+export type SanitizationRemarksForm = typeof sanitization_remarks.$inferInsert;
+export type SanitizationRemarks = typeof sanitization_remarks.$inferSelect;

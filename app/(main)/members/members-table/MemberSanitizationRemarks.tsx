@@ -24,13 +24,15 @@ import {
     Trash,
     TriangleAlert,
 } from "lucide-react";
-import { useState, useTransition } from "react";
-import { markMember } from "../action-sanitize";
+import { useEffect, useState, useTransition } from "react";
+import { getMemberSanitizationRemarks, markMember } from "../action-sanitize";
 
 export default function MemberSanitizationRemarks(props: {
     member_id: number;
 }) {
     const user = useUserContext();
+    const user_position_code: string = "C1";
+    // const user_position_code = user.poistion.code;
 
     const [remarks, setRemarks] = useState<
         SanitizationRemarksType | undefined
@@ -58,8 +60,11 @@ export default function MemberSanitizationRemarks(props: {
         });
     }
 
-    // const user_position_code = "P1";
-    const user_position_code = user.poistion.code;
+    useEffect(() => {
+        getMemberSanitizationRemarks(props.member_id).then((res) => {
+            setRemarks(res);
+        });
+    }, []);
 
     return (
         <>

@@ -50,6 +50,13 @@
       "when": 1771836408970,
       "tag": "0006_square_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1771924123938,
+      "tag": "0007_last_tattoo",
+      "breakpoints": true
     }
   ]
 }
