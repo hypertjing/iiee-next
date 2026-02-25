@@ -27,10 +27,7 @@ export default async function MembersPage() {
             {/* <div className="mb-4">Members</div> */}
             {/* <RegisteMemberForm /> */}
             <Suspense fallback={<div>Loading...</div>}>
-                <Members
-                    regions_list={regions_list}
-                    chapters_list={chapters_list}
-                />
+                <Members regions_list={regions_list} />
             </Suspense>
         </div>
     );

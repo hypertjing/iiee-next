@@ -14,6 +14,7 @@ import { MemberChapters, MemberRegionChapter, MemberRegions } from "@/types";
 import { Loader2, Search, Users } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import {
+    getRegionChapters,
     getUserProfilesAction,
     LicenseType,
     MemberStatusType,
@@ -22,12 +23,12 @@ import MemberStatusDashboard from "../dashboard/MemberStatusDashboard";
 import { MembersTable } from "./MembersTable";
 import MembersTablePagination from "./MembersTablePagination";
 
-export default function Member(props: {
-    regions_list: MemberRegions[];
-    chapters_list: MemberChapters[];
-}) {
+export default function Member(props: { regions_list: MemberRegions[] }) {
     const [member_regions, setMemberRegions] = useState("all");
     const [member_chapters, setMemberChapters] = useState("all");
+    const [member_chapters_select, setMemberChaptersSelect] = useState<
+        MemberChapters[]
+    >([]);
     const [member_type, setMemberType] = useState("all");
     const [member_status, setMemberStatus] = useState<MemberStatusType>("all");
     const [license_type, setLicenseType] = useState<LicenseType>("all");
@@ -119,6 +120,13 @@ export default function Member(props: {
         setLimit(parseInt(value));
     }
 
+    async function handleRegionChange(region_code: string) {
+        setMemberRegions(region_code);
+        const res_chapters = await getRegionChapters(region_code);
+
+        setMemberChaptersSelect(res_chapters);
+    }
+
     useEffect(() => {
         getUserProfiles();
     }, [member_regions]);
@@ -152,6 +160,10 @@ export default function Member(props: {
             getUserProfiles();
         }
     }, [limit]);
+
+    useEffect(() => {
+        handleRegionChange("all");
+    }, []);
 
     return (
         <>
@@ -217,8 +229,8 @@ export default function Member(props: {
                     <div className="flex flex-col gap-2">
                         <Label>Region</Label>
                         <Select
-                            onValueChange={(value) => setMemberRegions(value)}
-                            defaultValue="all"
+                            onValueChange={(value) => handleRegionChange(value)}
+                            value={member_regions}
                         >
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Region" />
@@ -240,19 +252,19 @@ export default function Member(props: {
                         <Label>Chapter</Label>
                         <Select
                             onValueChange={(value) => setMemberChapters(value)}
-                            defaultValue="all"
+                            value={member_chapters}
                         >
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Chapter" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={"all"}>All</SelectItem>
-                                {props.chapters_list.map((region) => (
+                                {member_chapters_select.map((chapter) => (
                                     <SelectItem
-                                        value={region.code}
-                                        key={region.pkChaptersId}
+                                        value={chapter.code}
+                                        key={chapter.pkChaptersId}
                                     >
-                                        {region.description}
+                                        {chapter.description}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -297,7 +309,7 @@ export default function Member(props: {
                             onValueChange={(value: MemberStatusType) =>
                                 setMemberStatus(value)
                             }
-                            defaultValue="all"
+                            value={member_status}
                         >
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Chapter" />
@@ -321,7 +333,7 @@ export default function Member(props: {
                             onValueChange={(value: LicenseType) =>
                                 setLicenseType(value)
                             }
-                            defaultValue="all"
+                            value={license_type}
                         >
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Chapter" />
@@ -340,7 +352,7 @@ export default function Member(props: {
                     {/* <Label>Row</Label> */}
                     <Select
                         onValueChange={(value) => handleLimitChange(value)}
-                        defaultValue="10"
+                        value={String(limit)}
                     >
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Limit" />

@@ -9,6 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { useUserContext } from "@/contexts/user-context";
 import { isExpired, isValidDateString } from "@/lib/utils";
 import { MemberRegionChapter } from "@/types";
 import { format } from "date-fns";
@@ -20,6 +21,13 @@ export function MembersTable(props: {
     pending: boolean;
     pageSize: number;
 }) {
+    const user = useUserContext();
+    // const user_position_code: string = "P1";
+    const user_position_code = user.poistion.code;
+    const member_visible =
+        user_position_code === "P1" || user_position_code === "C1"
+            ? true
+            : false;
     const data: MemberRegionChapter[] = props.data;
 
     return (
@@ -32,7 +40,7 @@ export function MembersTable(props: {
 
                             <TableHead>Region</TableHead>
                             <TableHead>Chapter</TableHead>
-                            {/* <TableHead>Full Name</TableHead> */}
+                            {member_visible && <TableHead>Full Name</TableHead>}
                             <TableHead>Member Type</TableHead>
                             <TableHead>Member No.</TableHead>
                             <TableHead>Validity</TableHead>
@@ -76,11 +84,13 @@ export function MembersTable(props: {
                                         <TableCell className="align-top">
                                             {data.chapter?.description || "N/A"}
                                         </TableCell>
-                                        {/* <TableCell className="align-top">
-                                            {data.userprofiles.lname},{" "}
-                                            {data.userprofiles.fname}{" "}
-                                            {data.userprofiles.mname}
-                                        </TableCell> */}
+                                        {member_visible && (
+                                            <TableCell className="align-top">
+                                                {data.userprofiles.lname},{" "}
+                                                {data.userprofiles.fname}{" "}
+                                                {data.userprofiles.mname}
+                                            </TableCell>
+                                        )}
                                         <TableCell className="align-top">
                                             {data.userprofiles.memberType}
                                         </TableCell>

@@ -17,11 +17,15 @@ type MarkMemberReturnType = {
 
 export async function getMemberSanitizationRemarks(
     member_id: number,
-): Promise<SanitizationRemarksType> {
+): Promise<SanitizationRemarksType | undefined> {
     const res = await db_new
         .select()
         .from(sanitization_remarks)
         .where(eq(sanitization_remarks.member_id, member_id));
+
+    if (res.length <= 0) {
+        return undefined;
+    }
 
     const return_val = res[0].remarks as unknown as SanitizationRemarksType;
 

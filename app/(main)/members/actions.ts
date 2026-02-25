@@ -213,6 +213,30 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
     };
 }
 
+export async function getRegionChapters(region_code: string) {
+    if (region_code === "all") {
+        const chapters_list = await db_old
+            .select()
+            .from(chapters)
+            .orderBy(asc(chapters.description));
+
+        return chapters_list;
+    }
+
+    const region_info = await db_old
+        .select()
+        .from(regions)
+        .where(eq(regions.code, region_code));
+
+    const chapters_list = await db_old
+        .select()
+        .from(chapters)
+        .where(eq(chapters.fkRegionsId, region_info[0].pkRegionsId))
+        .orderBy(asc(chapters.description));
+
+    return chapters_list;
+}
+
 async function getUserLicenseInfo(
     pk_userprofiles_id: number,
 ): Promise<UserLicense[] | null> {

@@ -121,8 +121,9 @@ export default async function ProfilePage({
                 <h2 className="text-xl font-semibold mb-2">Address</h2>
                 <div className="grid grid-cols-2 gap-6 text-sm">
                     <div>
-                        {profile.barangay}, {city.description},{" "}
-                        {province.description}, {country.description}{" "}
+                        {profile.barangay}, {city && `${city.description},`}{" "}
+                        {province && `${province.description},`}{" "}
+                        {country && country.description}{" "}
                     </div>
                 </div>
             </div>

@@ -31,7 +31,7 @@ export default function MemberSanitizationRemarks(props: {
     member_id: number;
 }) {
     const user = useUserContext();
-    const user_position_code: string = "C1";
+    const user_position_code: string = "P1";
     // const user_position_code = user.poistion.code;
 
     const [remarks, setRemarks] = useState<

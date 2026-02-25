@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Loader2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getUser } from "../lib/dal";
@@ -12,7 +13,7 @@ export default function MainLayout({
 }) {
     return (
         <SidebarProvider>
-            <Suspense fallback={<div>Loading sidebar...</div>}>
+            <Suspense fallback={<Loader />}>
                 <UserContextDataFetcher>
                     <AppSidebar />
                     <main className="p-5 w-full">
@@ -34,5 +35,16 @@ async function UserContextDataFetcher(props: { children: React.ReactNode }) {
 
     return (
         <UserContextProvider user={auth}>{props.children}</UserContextProvider>
+    );
+}
+
+function Loader() {
+    return (
+        <div className="flex gap-2 items-center justify-center w-full text-2xl">
+            {/* <div> */}
+            <Loader2 className="animate-spin text-blue-600" size={35} />{" "}
+            Loading...
+            {/* </div> */}
+        </div>
     );
 }
