@@ -70,8 +70,9 @@ export async function AppSidebar() {
     //     eq(cogsrequest.viewed, false)
     // );
 
-    const user_position: string = "P1";
-    // const user_position = user.poistion?.code;
+    // const user_position: string = "N1";
+    const user_position = auth.poistion?.code;
+    const allowed_positions = ["N1", "G1", "P1", "C1"];
 
     const notification_count = await db_new.transaction(async (tx) => {
         let cogs_requests_temp;
@@ -85,7 +86,7 @@ export async function AppSidebar() {
                 cogsrequest,
                 and(
                     eq(cogsrequest.response_viewed, false),
-                    eq(cogsrequest.user_id, auth.account.pkUserAccountsId),
+                    eq(cogsrequest.user_id, account.pkUserAccountsId),
                 ),
             );
         }
@@ -100,24 +101,35 @@ export async function AppSidebar() {
                     <SidebarGroupLabel>Application</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {items.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <Link href={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                            {item.url == "/cogs" &&
-                                                notification_count > 0 && (
-                                                    <Badge
-                                                        variant={"destructive"}
-                                                    >
-                                                        {notification_count}
-                                                    </Badge>
-                                                )}
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
+                            {items.map((item) => {
+                                if (
+                                    item.url == "/members" &&
+                                    !allowed_positions.includes(user_position)
+                                ) {
+                                    return;
+                                }
+
+                                return (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild>
+                                            <Link href={item.url}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                                {item.url == "/cogs" &&
+                                                    notification_count > 0 && (
+                                                        <Badge
+                                                            variant={
+                                                                "destructive"
+                                                            }
+                                                        >
+                                                            {notification_count}
+                                                        </Badge>
+                                                    )}
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                );
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

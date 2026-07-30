@@ -24,10 +24,13 @@ export function MembersTable(props: {
     const user = useUserContext();
     // const user_position_code: string = "P1";
     const user_position_code = user.poistion.code;
-    const member_visible =
-        user_position_code === "P1" || user_position_code === "C1"
-            ? true
-            : false;
+
+    const allowed_positions = ["N1", "G1", "P1", "C1"];
+
+    const member_visible = allowed_positions.includes(user_position_code)
+        ? true
+        : false;
+    // const member_visible = true;
     const data: MemberRegionChapter[] = props.data;
 
     return (
