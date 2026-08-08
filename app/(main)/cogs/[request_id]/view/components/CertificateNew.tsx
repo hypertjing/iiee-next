@@ -59,7 +59,7 @@ export default async function CertificateNew({
     )[0];
 
     const nat_sec = await db_old
-        .select()
+        .select({ userprofiles: userprofiles })
         .from(userpositions)
         .leftJoin(
             userprofiles,
@@ -68,7 +68,7 @@ export default async function CertificateNew({
         .where(eq(userpositions.fkPositionsId, 5));
 
     const nat_pres = await db_old
-        .select()
+        .select({ userprofiles: userprofiles })
         .from(userpositions)
         .leftJoin(
             userprofiles,

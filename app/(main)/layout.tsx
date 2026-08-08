@@ -16,10 +16,10 @@ export default function MainLayout({
             <Suspense fallback={<Loader />}>
                 <UserContextDataFetcher>
                     <AppSidebar />
-                    <main className="p-5 w-full">
+                    <div className="p-5 w-full">
                         <SidebarTrigger />
                         <div className="p-2 pt-5">{children}</div>
-                    </main>
+                    </div>
                 </UserContextDataFetcher>
             </Suspense>
         </SidebarProvider>

@@ -17,7 +17,7 @@ export default async function page() {
     const cogs_requests_db = await db_new
         .select()
         .from(cogsrequest)
-        .where(eq(cogsrequest.user_id, 73816));
+        .where(eq(cogsrequest.user_id, user.account.pkUserAccountsId));
 
     return (
         <div>

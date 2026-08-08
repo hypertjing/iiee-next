@@ -37,11 +37,11 @@ export async function GET(request: Request) {
         or(
             like(userprofiles.fname, `%${keyword}%`),
             like(userprofiles.mname, `%${keyword}%`),
-            like(userprofiles.lname, `%${keyword}%`)
+            like(userprofiles.lname, `%${keyword}%`),
         ),
         regions_filter,
         chapter_filter,
-        member_type_filter
+        member_type_filter,
     );
 
     // const max_page = await db.$count(userprofiles, search_logic);
@@ -54,7 +54,11 @@ export async function GET(request: Request) {
 
     const members = (
         await db_old
-            .select()
+            .select({
+                userprofiles: userprofiles,
+                chapters: chapters,
+                regions: regions,
+            })
             .from(userprofiles)
             .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
             .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))
@@ -62,7 +66,7 @@ export async function GET(request: Request) {
             .orderBy(
                 asc(userprofiles.lname),
                 asc(userprofiles.fname),
-                asc(userprofiles.mname)
+                asc(userprofiles.mname),
             )
             .offset(offset)
             .limit(limit)

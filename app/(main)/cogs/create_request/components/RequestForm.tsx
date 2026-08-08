@@ -46,11 +46,11 @@ export default function RequestForm(props: {
     user: {
         userprofile: UserProfile;
         account: UserAccount;
-        poistion: Position;
+        position: Position;
     };
     db_fees: Fee[];
     onSubmitAction: (
-        data: CogsRequestFormType
+        data: CogsRequestFormType,
     ) => Promise<{ success: boolean; message: string }>;
 }) {
     const [form, setForm] = useState<CogsRequestFormType>({
@@ -90,7 +90,7 @@ export default function RequestForm(props: {
         const temp_form = { ...form };
 
         const selected_fee = props.db_fees.find(
-            (fee) => fee.pkFeesId == Number(fee_id)
+            (fee) => fee.pkFeesId == Number(fee_id),
         );
 
         if (!selected_fee) {

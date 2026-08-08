@@ -71,7 +71,7 @@ export async function AppSidebar() {
     // );
 
     // const user_position: string = "N1";
-    const user_position = auth.poistion?.code;
+    const user_position = auth.position?.code;
     const allowed_positions = ["N1", "G1", "P1", "C1"];
 
     const notification_count = await db_new.transaction(async (tx) => {

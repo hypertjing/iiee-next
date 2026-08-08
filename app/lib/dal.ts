@@ -44,13 +44,6 @@ async function getUserInfo(session: {
     const userProfileId: number = session.userProfileId as number;
     const userId: number = session.userId as number;
 
-    const data = await db_old
-        .select()
-        .from(userprofiles)
-        .where(eq(userprofiles.pkUserProfilesId, userProfileId));
-
-    const userprofile = data[0];
-
     const accountdb = await db_old
         .select()
         .from(useraccounts)
@@ -58,19 +51,43 @@ async function getUserInfo(session: {
 
     const account = accountdb[0];
 
-    const user_poistion_pivot = (
+    const data = await db_old
+        .select()
+        .from(userprofiles)
+        .where(eq(userprofiles.pkUserProfilesId, userProfileId));
+
+    const userprofile = data[0];
+
+    const user_position_pivot = (
         await db_old
             .select()
             .from(userpositions)
             .where(eq(userpositions.fkUserProfilesId, userProfileId))
     )[0];
 
-    const poistion = (
+    // let position: Position | null;
+    // if (!user_position_pivot) {
+    //     position = null;
+    // } else {
+    //     position = (
+    //         await db_old
+    //             .select()
+    //             .from(positions)
+    //             .where(
+    //                 eq(
+    //                     positions.pkPositionsId,
+    //                     user_position_pivot.fkPositionsId,
+    //                 ),
+    //             )
+    //     )[0];
+    // }
+
+    const position = (
         await db_old
             .select()
             .from(positions)
             .where(
-                eq(positions.pkPositionsId, user_poistion_pivot.fkPositionsId),
+                eq(positions.pkPositionsId, user_position_pivot.fkPositionsId),
             )
     )[0];
 
@@ -78,7 +95,7 @@ async function getUserInfo(session: {
         return null;
     }
 
-    return { userprofile, account, poistion };
+    return { userprofile, account, position };
 }
 
 export const getUser = cache(async () => {
@@ -94,21 +111,43 @@ export const getUser = cache(async () => {
     return {
         userprofile: user_info.userprofile,
         account: user_info.account,
-        poistion: user_info.poistion,
+        position: user_info.position,
     };
 });
 
-export async function getUserPositionCode() {
-    // "use cache";
-    // await sleep(2000);
-    const user = await getUser();
+export async function getUserPositionCode(userProfileId: number) {
+    "use cache";
+    cacheLife("hours");
+    const user_position_pivot = (
+        await db_old
+            .select()
+            .from(userpositions)
+            .where(eq(userpositions.fkUserProfilesId, userProfileId))
+    )[0];
 
-    if (user) {
-        const user_position = user.poistion?.code;
-        // const user_position: string = "P1";
-
-        return user_position;
+    if (!user_position_pivot) {
+        return "no_position"; // could be admin
     }
+
+    const position = (
+        await db_old
+            .select()
+            .from(positions)
+            .where(
+                eq(positions.pkPositionsId, user_position_pivot.fkPositionsId),
+            )
+    )[0];
+
+    return position.code;
+
+    // "use cache";
+    // const user = await getUser();
+
+    // if (user) {
+    //     const user_position = user.position?.code;
+
+    //     return user_position;
+    // }
 }
 
 export async function getUserPermanentAddress(userId?: number) {
@@ -119,7 +158,12 @@ export async function getUserPermanentAddress(userId?: number) {
 
     const userprofile = (
         await db_old
-            .select()
+            .select({
+                userprofiles: userprofiles,
+                cities: cities,
+                provinces: provinces,
+                countries: countries,
+            })
             .from(userprofiles)
             .leftJoin(
                 citiesRegion,

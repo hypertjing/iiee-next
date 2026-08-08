@@ -167,7 +167,11 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         region: MemberRegions | null;
     }[] = (
         await db_old
-            .select()
+            .select({
+                userprofiles: userprofiles,
+                chapters: chapters,
+                regions: regions,
+            })
             .from(userprofiles)
             .leftJoin(chapters, eq(userprofiles.chapter, chapters.pkChaptersId))
             .leftJoin(regions, eq(userprofiles.region, regions.pkRegionsId))

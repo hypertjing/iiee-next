@@ -23,7 +23,7 @@ export function MembersTable(props: {
 }) {
     const user = useUserContext();
     // const user_position_code: string = "P1";
-    const user_position_code = user.poistion.code;
+    const user_position_code = user.position.code;
 
     const allowed_positions = ["N1", "G1", "P1", "C1"];
 

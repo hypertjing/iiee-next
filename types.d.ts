@@ -30,7 +30,7 @@ export type MemberRegionChapter = {
 export type User = {
     userprofile: UserProfile;
     account: UserAccount;
-    poistion: Position;
+    position: Position;
 };
 
 export type CogsRequest = typeof cogsrequest.$inferSelect;

@@ -16,7 +16,7 @@ import path from "path";
 export default async function CogsPage() {
     async function saveFile(
         file: File,
-        folder: string
+        folder: string,
     ): Promise<string | null> {
         "use server";
 
@@ -102,8 +102,8 @@ export default async function CogsPage() {
         .where(
             or(
                 eq(fees.memberType, user.userprofile.memberType),
-                eq(fees.memberType, "")
-            )
+                eq(fees.memberType, ""),
+            ),
         );
 
     const user_position = "P1";

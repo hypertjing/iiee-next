@@ -24,7 +24,9 @@ export default async function RequestDetailsPage({
         return <div>Loading...</div>;
     }
 
-    const user_position = await getUserPositionCode();
+    const user_position = await getUserPositionCode(
+        user.userprofile.pkUserProfilesId,
+    );
 
     if (!user_position) {
         return <div>Loading user info...</div>;

@@ -1,4 +1,4 @@
-import { getUser } from "@/app/lib/dal";
+import { getUser, getUserPositionCode } from "@/app/lib/dal";
 import { Button } from "@/components/ui/button";
 import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
@@ -21,7 +21,9 @@ export default async function page() {
     }
 
     // const user_position: string = "P1";
-    const user_position = user.poistion?.code;
+    const user_position = await getUserPositionCode(
+        user.userprofile.pkUserProfilesId,
+    );
 
     const cogs_requests = await db_new.transaction(async (tx) => {
         let cogs_requests_temp;
@@ -41,7 +43,7 @@ export default async function page() {
         <div>
             <div className="flex justify-start mb-5 space-x-4">
                 <Link href="/cogs/create_request">
-                    <Button>
+                    <Button variant={"iieeblue"}>
                         <Plus /> New Request
                     </Button>
                 </Link>

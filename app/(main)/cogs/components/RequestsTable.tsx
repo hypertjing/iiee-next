@@ -33,11 +33,13 @@ export default async function RequestsTable({
         return <div>Loading...</div>;
     }
 
-    const user_position = await getUserPositionCode();
+    const user_position = await getUserPositionCode(
+        user.userprofile.pkUserProfilesId,
+    );
 
-    if (!user) {
-        return <div>Loading user info...</div>;
-    }
+    // if (!user) {
+    //     return <div>Loading user info...</div>;
+    // }
 
     async function markRequestAsViewed(requestId: number) {
         "use server";
