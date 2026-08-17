@@ -10,10 +10,11 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useUserContext } from "@/contexts/user-context";
-import { isExpired, isValidDateString } from "@/lib/utils";
+import { isExpired } from "@/lib/utils";
 import { MemberRegionChapter } from "@/types";
 import { format } from "date-fns";
 import Link from "next/link";
+import LicenseAndValidity from "./LicenseAndValidity";
 import MemberSanitizationRemarks from "./MemberSanitizationRemarks";
 
 export function MembersTable(props: {
@@ -22,15 +23,20 @@ export function MembersTable(props: {
     pageSize: number;
 }) {
     const user = useUserContext();
-    // const user_position_code: string = "P1";
-    const user_position_code = user.position.code;
+    const user_position_code = user.account.fkUserControlCode;
 
-    const allowed_positions = ["N1", "G1", "P1", "C1"];
+    const allowed_positions = [
+        "NP",
+        "Rgov",
+        "ChapterPresidents",
+        "Super Admin",
+        "MCDC",
+    ];
 
     const member_visible = allowed_positions.includes(user_position_code)
         ? true
         : false;
-    // const member_visible = true;
+
     const data: MemberRegionChapter[] = props.data;
 
     return (
@@ -128,7 +134,7 @@ export function MembersTable(props: {
                                                 data.userprofiles
                                                     .membershipValidity,
                                             ) === true && (
-                                                <div className="text-white bg-red-500 px-2 py-1 text-center">
+                                                <div className="rounded-md text-white bg-red-500 px-2 py-1 text-center">
                                                     Inactive
                                                 </div>
                                             )}
@@ -137,7 +143,7 @@ export function MembersTable(props: {
                                                 data.userprofiles
                                                     .membershipValidity,
                                             ) === false && (
-                                                <div className="text-white bg-green-600 px-2 py-1 text-center">
+                                                <div className="rounded-md text-white bg-green-600 px-2 py-1 text-center">
                                                     Active
                                                 </div>
                                             )}
@@ -146,89 +152,38 @@ export function MembersTable(props: {
                                                 data.userprofiles
                                                     .membershipValidity,
                                             ) === "dormant" && (
-                                                <div className="text-white bg-amber-500 px-2 py-1 text-center">
+                                                <div className="rounded-md text-white bg-amber-500 px-2 py-1 text-center">
                                                     Dormant
                                                 </div>
                                             )}
-
-                                            {/* {isExpired(
-                                                data.userprofiles
-                                                    .membershipValidity,
-                                            ) ? (
-                                                <>
-                                                    <Badge className="text-red-700 bg-red-100">
-                                                        Inactive
-                                                    </Badge>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Badge className="text-green-800 bg-green-200">
-                                                        Active
-                                                    </Badge>
-                                                </>
-                                            )} */}
                                         </TableCell>
                                         <TableCell className="align-top">
                                             {data.userlicense == null ? (
                                                 "No license"
                                             ) : (
-                                                <div className="space-y-1">
+                                                <div className="space-y-[1px]">
                                                     {data.userlicense.map(
-                                                        (userlicense) => (
-                                                            <div
-                                                                key={
-                                                                    userlicense.pkUserLicenseId
-                                                                }
-                                                                className={`${
-                                                                    isExpired(
-                                                                        new Date(
-                                                                            userlicense.validityDate,
-                                                                        ),
-                                                                    ) ||
-                                                                    !isValidDateString(
-                                                                        userlicense.validityDate,
-                                                                    )
-                                                                        ? "text-white bg-red-600 text-center"
-                                                                        : "text-white bg-green-600 text-center"
-                                                                } px-2 py-1 flex justify-between gap-1`}
-                                                            >
-                                                                <div>
-                                                                    {
-                                                                        userlicense.licenseType
-                                                                    }{" "}
-                                                                    {
-                                                                        userlicense.licenseNo
+                                                        (
+                                                            userlicense,
+                                                            index,
+                                                        ) => {
+                                                            return (
+                                                                <LicenseAndValidity
+                                                                    index={
+                                                                        index +
+                                                                        1
                                                                     }
-                                                                </div>
-                                                                <div>
-                                                                    {isValidDateString(
-                                                                        userlicense.validityDate,
-                                                                    ) ? (
-                                                                        Intl.DateTimeFormat(
-                                                                            undefined,
-                                                                            {
-                                                                                month: "short",
-                                                                                day: "2-digit",
-                                                                                year: "numeric",
-                                                                            },
-                                                                        ).format(
-                                                                            new Date(
-                                                                                userlicense.validityDate,
-                                                                            ),
-                                                                        )
-                                                                    ) : (
-                                                                        <span>
-                                                                            {/* Invalid
-                                                                            Expiry
-                                                                            Date */}
-                                                                            {
-                                                                                userlicense.validityDate
-                                                                            }
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        ),
+                                                                    number_of_licenses={
+                                                                        data
+                                                                            .userlicense
+                                                                            ?.length
+                                                                    }
+                                                                    userlicense={
+                                                                        userlicense
+                                                                    }
+                                                                />
+                                                            );
+                                                        },
                                                     )}
                                                 </div>
                                             )}

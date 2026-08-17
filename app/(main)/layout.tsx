@@ -27,14 +27,14 @@ export default function MainLayout({
 }
 
 async function UserContextDataFetcher(props: { children: React.ReactNode }) {
-    const auth = await getUser();
+    const user = await getUser();
 
-    if (auth === null) {
+    if (user === null) {
         redirect("/login");
     }
 
     return (
-        <UserContextProvider user={auth}>{props.children}</UserContextProvider>
+        <UserContextProvider user={user}>{props.children}</UserContextProvider>
     );
 }
 

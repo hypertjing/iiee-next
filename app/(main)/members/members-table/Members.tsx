@@ -108,13 +108,13 @@ export default function Member(props: { regions_list: MemberRegions[] }) {
         setCurrentPage(current_page + 1);
     }
 
-    const [mtc_pending, startTransitionMTC] = useTransition();
-    async function handleMemberTypeChange(value: string) {
-        startTransitionMTC(async () => {
-            setMemberType(value);
-        });
-        getUserProfiles();
-    }
+    // const [mtc_pending, startTransitionMTC] = useTransition();
+    // async function handleMemberTypeChange(value: string) {
+    //     startTransitionMTC(async () => {
+    //         setMemberType(value);
+    //     });
+    //     getUserProfiles();
+    // }
 
     function handleLimitChange(value: string) {
         setLimit(parseInt(value));
@@ -388,5 +388,3 @@ export default function Member(props: { regions_list: MemberRegions[] }) {
         </>
     );
 }
-
-// Meron akong nahuling nagcheat kanina and I would like to remind you that academic dishonesty is taken very seriously. Wag nyong sirain ang tiwala ko sa inyo. I can easily give you 1 extra year dito sa university, and you’ll end up finishing your BS degree in your 5th year or even 6th year.

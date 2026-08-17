@@ -96,6 +96,15 @@ export default async function CogsPage() {
         return <div>Loading...</div>;
     }
 
+    if (user.userprofile == null) {
+        return (
+            <div>
+                A user without profile cannot request cogs{" "}
+                {/* {user.account.fkUserControlCode} */}
+            </div>
+        );
+    }
+
     const db_fees = await db_old
         .select()
         .from(fees)
@@ -106,7 +115,7 @@ export default async function CogsPage() {
             ),
         );
 
-    const user_position = "P1";
+    // const user_position = "P1";
     // const user_position = user.poistion?.code;
 
     // if (user_position !== "P1" && user_position !== "P2") {

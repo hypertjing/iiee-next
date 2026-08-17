@@ -60,7 +60,7 @@ export async function AppSidebar() {
     // const exp_test = new Date(Date.now());
     // exp_test.setFullYear(2024);
 
-    if (date_now > userprofile.membershipValidity) {
+    if (userprofile && date_now > userprofile.membershipValidity) {
         redirect("/membership_expired");
         // console.log(userprofile.membershipValidity, date_now);
     }
@@ -71,8 +71,14 @@ export async function AppSidebar() {
     // );
 
     // const user_position: string = "N1";
-    const user_position = auth.position?.code;
-    const allowed_positions = ["N1", "G1", "P1", "C1"];
+    const user_position = account.fkUserControlCode;
+    const allowed_positions = [
+        "NP",
+        "Rgov",
+        "ChapterPresidents",
+        "Super Admin",
+        "MCDC",
+    ];
 
     const notification_count = await db_new.transaction(async (tx) => {
         let cogs_requests_temp;

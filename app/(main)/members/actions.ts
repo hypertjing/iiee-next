@@ -59,13 +59,6 @@ export async function getUserProfilesAction(params: UserProfilesActionParams) {
         member_type_filter = like(userprofiles.memberType, "%%");
     }
 
-    // let regions_filter = eq(regions.code, region);
-    // if (params.region === "all") {
-    //     regions_filter = eq(regions.code, "NL");
-    // } else if (params.region != "NL") {
-    //     regions_filter = like(regions.code, "%xxx%");
-    // }
-
     let regions_filter = eq(regions.code, region);
     if (params.region === "all") {
         regions_filter = like(regions.code, "%%");

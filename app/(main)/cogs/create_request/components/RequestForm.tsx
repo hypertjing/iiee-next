@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Fee, Position, UserAccount, UserProfile } from "@/types";
+import { Fee, UserAccount, UserProfile } from "@/types";
 import { Loader2, Send } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -44,9 +44,8 @@ export type CogsRequestFormType = {
 
 export default function RequestForm(props: {
     user: {
-        userprofile: UserProfile;
         account: UserAccount;
-        position: Position;
+        userprofile: UserProfile | undefined;
     };
     db_fees: Fee[];
     onSubmitAction: (

@@ -1,4 +1,4 @@
-import { getUser, getUserPositionCode } from "@/app/lib/dal";
+import { getUser } from "@/app/lib/dal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     Table,
@@ -33,10 +33,6 @@ export default async function RequestsTable({
         return <div>Loading...</div>;
     }
 
-    const user_position = await getUserPositionCode(
-        user.userprofile.pkUserProfilesId,
-    );
-
     // if (!user) {
     //     return <div>Loading user info...</div>;
     // }
@@ -46,7 +42,7 @@ export default async function RequestsTable({
 
         // await new Promise((resolve) => setTimeout(resolve, 5000));
 
-        if (user_position == "P1") {
+        if (user?.account.fkUserControlCode == "ChapterPresidents") {
             await db_new
                 .update(cogsrequest)
                 .set({ viewed: true })

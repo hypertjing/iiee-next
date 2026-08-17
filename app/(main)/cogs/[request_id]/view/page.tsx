@@ -1,4 +1,3 @@
-import { getUserPermanentAddress } from "@/app/lib/dal";
 import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
 import { db_old } from "@/db/old";
@@ -55,7 +54,7 @@ export default async function page({
         .from(userlicense)
         .where(eq(userlicense.fkUserProfilesId, requestor.pkUserProfilesId));
 
-    const user_address = await getUserPermanentAddress();
+    // const user_address = await getUserPermanentAddress();
 
     return (
         <div>

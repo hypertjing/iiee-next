@@ -1,4 +1,4 @@
-import { getUser, getUserPositionCode } from "@/app/lib/dal";
+import { getUser } from "@/app/lib/dal";
 import BackButton from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { db_new } from "@/db/new";
@@ -24,13 +24,6 @@ export default async function RequestDetailsPage({
         return <div>Loading...</div>;
     }
 
-    const user_position = await getUserPositionCode(
-        user.userprofile.pkUserProfilesId,
-    );
-
-    if (!user_position) {
-        return <div>Loading user info...</div>;
-    }
     // const user_position = user.poistion?.code;
 
     const requestId = (await params).request_id;
@@ -56,6 +49,13 @@ export default async function RequestDetailsPage({
 
     request.amount_due = "0";
     // await sleep(1000);
+    const allowed_positions = ["NP", "ChapterPresidents"];
+
+    const user_position_code = user.account.fkUserControlCode;
+
+    const allowed_to_approve_cogs_request =
+        allowed_positions.includes(user_position_code);
+
     return (
         <>
             <div>
@@ -238,7 +238,7 @@ export default async function RequestDetailsPage({
                         </div>
                     </div>
                     <div className="flex gap-2 mt-10 mb-20 justify-center">
-                        {user_position == "P1" &&
+                        {allowed_to_approve_cogs_request &&
                             request.status == "Pending" && (
                                 <>
                                     <Button className="bg-red-600">

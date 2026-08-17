@@ -28,9 +28,8 @@ export type MemberRegionChapter = {
 };
 
 export type User = {
-    userprofile: UserProfile;
+    userprofile: UserProfile | undefined;
     account: UserAccount;
-    position: Position;
 };
 
 export type CogsRequest = typeof cogsrequest.$inferSelect;

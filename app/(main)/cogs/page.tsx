@@ -1,4 +1,4 @@
-import { getUser, getUserPositionCode } from "@/app/lib/dal";
+import { getUser } from "@/app/lib/dal";
 import { Button } from "@/components/ui/button";
 import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
@@ -20,14 +20,22 @@ export default async function page() {
         return <div>Loading...</div>;
     }
 
-    // const user_position: string = "P1";
-    const user_position = await getUserPositionCode(
-        user.userprofile.pkUserProfilesId,
-    );
+    const user_position_code = user.account.fkUserControlCode;
+
+    const allowed_positions = [
+        "NP",
+        "Rgov",
+        "ChapterPresidents",
+        "Super Admin",
+        "MCDC",
+    ];
+
+    const allowed_to_view_cogs_requests =
+        allowed_positions.includes(user_position_code);
 
     const cogs_requests = await db_new.transaction(async (tx) => {
         let cogs_requests_temp;
-        if (user_position == "P1") {
+        if (allowed_to_view_cogs_requests) {
             cogs_requests_temp = await tx.select().from(cogsrequest);
         } else {
             cogs_requests_temp = await tx

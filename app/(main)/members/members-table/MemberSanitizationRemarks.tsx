@@ -32,7 +32,7 @@ export default function MemberSanitizationRemarks(props: {
 }) {
     const user = useUserContext();
     // const user_position_code: string = "P1";
-    const user_position_code = user.position.code;
+    const user_position_code = user.account.fkUserControlCode;
 
     const [remarks, setRemarks] = useState<
         SanitizationRemarksType | undefined

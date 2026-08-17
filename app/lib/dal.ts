@@ -6,10 +6,8 @@ import {
     cities,
     citiesRegion,
     countries,
-    positions,
     provinces,
     useraccounts,
-    userpositions,
     userprofiles,
 } from "@/db/old/drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -51,19 +49,32 @@ async function getUserInfo(session: {
 
     const account = accountdb[0];
 
-    const data = await db_old
+    if (
+        account.fkUserProfilesId == 0 ||
+        account.akUserAccountsType == "ADMIN"
+    ) {
+        return { account };
+    }
+
+    const user_profile_db = await db_old
         .select()
         .from(userprofiles)
         .where(eq(userprofiles.pkUserProfilesId, userProfileId));
 
-    const userprofile = data[0];
+    const userprofile = user_profile_db[0];
 
-    const user_position_pivot = (
-        await db_old
-            .select()
-            .from(userpositions)
-            .where(eq(userpositions.fkUserProfilesId, userProfileId))
-    )[0];
+    // if (!account || !userprofile) {
+    //     return null;
+    // }
+
+    return { account, userprofile };
+
+    // const user_position_pivot = (
+    //     await db_old
+    //         .select()
+    //         .from(userpositions)
+    //         .where(eq(userpositions.fkUserProfilesId, userProfileId))
+    // )[0];
 
     // let position: Position | null;
     // if (!user_position_pivot) {
@@ -82,20 +93,14 @@ async function getUserInfo(session: {
     //     )[0];
     // }
 
-    const position = (
-        await db_old
-            .select()
-            .from(positions)
-            .where(
-                eq(positions.pkPositionsId, user_position_pivot.fkPositionsId),
-            )
-    )[0];
-
-    if (!account || !userprofile) {
-        return null;
-    }
-
-    return { userprofile, account, position };
+    // const position = (
+    //     await db_old
+    //         .select()
+    //         .from(positions)
+    //         .where(
+    //             eq(positions.pkPositionsId, user_position_pivot.fkPositionsId),
+    //         )
+    // )[0];
 }
 
 export const getUser = cache(async () => {
@@ -104,57 +109,56 @@ export const getUser = cache(async () => {
 
     const user_info = await getUserInfo(session);
 
-    if (user_info === null) {
-        return null;
-    }
-
     return {
-        userprofile: user_info.userprofile,
         account: user_info.account,
-        position: user_info.position,
+        userprofile: user_info.userprofile,
     };
 });
 
-export async function getUserPositionCode(userProfileId: number) {
-    "use cache";
-    cacheLife("hours");
-    const user_position_pivot = (
-        await db_old
-            .select()
-            .from(userpositions)
-            .where(eq(userpositions.fkUserProfilesId, userProfileId))
-    )[0];
+// export async function getUserPositionCode(userProfileId: number) {
+//     "use cache";
+//     cacheLife("hours");
+//     const user_position_pivot = (
+//         await db_old
+//             .select()
+//             .from(userpositions)
+//             .where(eq(userpositions.fkUserProfilesId, userProfileId))
+//     )[0];
 
-    if (!user_position_pivot) {
-        return "no_position"; // could be admin
-    }
+//     if (!user_position_pivot) {
+//         return "no_position"; // could be admin
+//     }
 
-    const position = (
-        await db_old
-            .select()
-            .from(positions)
-            .where(
-                eq(positions.pkPositionsId, user_position_pivot.fkPositionsId),
-            )
-    )[0];
+//     const position = (
+//         await db_old
+//             .select()
+//             .from(positions)
+//             .where(
+//                 eq(positions.pkPositionsId, user_position_pivot.fkPositionsId),
+//             )
+//     )[0];
 
-    return position.code;
+//     return position.code;
 
-    // "use cache";
-    // const user = await getUser();
+//     // "use cache";
+//     // const user = await getUser();
 
-    // if (user) {
-    //     const user_position = user.position?.code;
+//     // if (user) {
+//     //     const user_position = user.position?.code;
 
-    //     return user_position;
-    // }
-}
+//     //     return user_position;
+//     // }
+// }
 
-export async function getUserPermanentAddress(userId?: number) {
+export async function getUserPermanentAddress(userId: number) {
     const auth = await getUser();
     if (!auth) return null;
 
-    const userIdFinal = userId ? userId : auth.userprofile.pkUserProfilesId;
+    if (auth.userprofile == null) {
+    }
+
+    const userIdFinal = userId;
+    // const userIdFinal = userId ? userId : auth.userprofile?.pkUserProfilesId;
 
     const userprofile = (
         await db_old
