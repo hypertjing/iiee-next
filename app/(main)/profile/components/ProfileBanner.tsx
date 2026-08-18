@@ -2,7 +2,6 @@ import { getUser, getUserLatestLicense } from "@/app/lib/dal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { getInitials } from "@/lib/utils";
-import { Badge, BadgeCheck } from "lucide-react";
 
 export default async function ProfileBanner() {
     const user = await getUser();
@@ -25,37 +24,35 @@ export default async function ProfileBanner() {
     }
 
     return (
-        <Card className="overflow-hidden pt-0">
-            <div className="h-28 bg-primary" />
+        <Card className="overflow-hidden">
+            {/* <div className="h-10 bg-primary" /> */}
 
-            <CardContent className="relative px-6 pb-6">
-                <div className="-mt-14 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                        <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                            <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">
-                                {getInitials(
-                                    `${user.userprofile?.fname} ${user.userprofile?.mname} ${user.userprofile?.lname}`,
-                                )}
-                            </AvatarFallback>
-                        </Avatar>
+            <CardContent className="relative">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <Avatar className="h-40 w-40 border-4 border-background shadow-md">
+                        <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">
+                            {getInitials(
+                                `${user.userprofile?.fname} ${user.userprofile?.mname} ${user.userprofile?.lname}`,
+                            )}
+                        </AvatarFallback>
+                    </Avatar>
 
-                        <div className="pb-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <h2 className="text-2xl font-semibold">
-                                    {`${user.userprofile?.fname} ${user.userprofile?.mname} ${user.userprofile?.lname}`}
-                                </h2>
+                    <div className="">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h2 className="text-2xl font-semibold">
+                                {`${user.userprofile?.fname} ${user.userprofile?.mname} ${user.userprofile?.lname}`}
+                            </h2>
 
-                                <Badge className="gap-1">
+                            {/* <Badge className="gap-1">
                                     <BadgeCheck className="h-3.5 w-3.5 text-sky-400" />
-                                </Badge>
-                            </div>
-
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                <span className="font-medium text-foreground">
-                                    {profession}
-                                </span>
-                            </p>
+                                </Badge> */}
                         </div>
+
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            <span className="font-medium text-foreground">
+                                {profession}
+                            </span>
+                        </p>
                     </div>
                 </div>
             </CardContent>

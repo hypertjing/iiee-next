@@ -1,5 +1,7 @@
 import { getUser, getUserMembershipInfo } from "@/app/lib/dal";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MemberStatus } from "@/types";
 import {
     Building2,
     CalendarDays,
@@ -26,9 +28,14 @@ export default async function MembershipOverview() {
         user.userprofile.pkUserProfilesId,
     );
 
+    const is_membership_expired: MemberStatus =
+        membership_info.membership_status;
+
     return (
         <div>
-            <Card>
+            <Card
+                className={`${is_membership_expired == "Inactive" ? "border-2 border-red-500 bg-red-50" : is_membership_expired == "Dormant" ? "border-2 border-amber-500 bg-amber-50" : ""}`}
+            >
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <UserStar className="h-5 w-5 text-primary" />
@@ -52,12 +59,20 @@ export default async function MembershipOverview() {
                         <DetailItem
                             icon={CalendarDays}
                             label="Membership Valid Until"
-                            value={Intl.DateTimeFormat(undefined, {
-                                weekday: "long",
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric",
-                            }).format(membership_info.membership_validity)}
+                            value={
+                                <span
+                                    className={`${is_membership_expired === "Inactive" ? "text-red-500" : is_membership_expired === "Dormant" ? "text-amber-600" : ""}`}
+                                >
+                                    {Intl.DateTimeFormat(undefined, {
+                                        weekday: "long",
+                                        day: "2-digit",
+                                        month: "long",
+                                        year: "numeric",
+                                    }).format(
+                                        membership_info.membership_validity,
+                                    )}
+                                </span>
+                            }
                         />
                     </section>
                     <section className="grid gap-4 md:grid-cols-3">
@@ -72,14 +87,34 @@ export default async function MembershipOverview() {
                             value={membership_info.membership_region}
                         />
 
-                        <DetailItem
-                            icon={ShieldCheck}
-                            label="Status"
-                            value={membership_info.membership_status}
-                        />
+                        <div>
+                            <DetailItem
+                                icon={ShieldCheck}
+                                label="Status"
+                                value={
+                                    is_membership_expired === "Active" ? (
+                                        <Active />
+                                    ) : is_membership_expired === "Inactive" ? (
+                                        <InActive />
+                                    ) : (
+                                        <Dormant />
+                                    )
+                                }
+                            />
+                        </div>
                     </section>
                 </CardContent>
             </Card>
         </div>
     );
+}
+
+function InActive() {
+    return <Badge variant={"destructive"}>Inactive</Badge>;
+}
+function Active() {
+    return <Badge className="bg-green-600">Active</Badge>;
+}
+function Dormant() {
+    return <Badge className="bg-amber-600">Dormant</Badge>;
 }

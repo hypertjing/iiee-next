@@ -9,7 +9,7 @@ export default function DetailItem({
 }: {
     icon: IconType;
     label: string;
-    value: string;
+    value: string | React.ReactNode;
 }) {
     return (
         <div className="flex gap-3">
