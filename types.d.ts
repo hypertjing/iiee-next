@@ -2,6 +2,7 @@ import { cogsrequest, sanitization_remarks } from "./db/new/schema";
 import {
     chapters,
     fees,
+    licenseType,
     positions,
     regions,
     shippingtypes,
@@ -13,7 +14,16 @@ import {
 
 export type UserAccount = typeof useraccounts.$inferSelect;
 export type UserProfile = typeof userprofiles.$inferSelect;
+
 export type UserLicense = typeof userlicense.$inferSelect;
+export type LicenseType = typeof licenseType.$inferSelect;
+export type LicenseCodeType = typeof userlicense.$inferSelect.licenseType;
+
+export type License = {
+    UserLicense: UserLicense;
+    LicenseType: LicenseType | null;
+};
+
 export type MemberRegions = typeof regions.$inferSelect;
 export type MemberChapters = typeof chapters.$inferSelect;
 
@@ -26,6 +36,9 @@ export type MemberRegionChapter = {
     chapter: MemberChapters | null;
     region: MemberRegions | null;
 };
+
+export type MemberType = typeof userprofiles.$inferSelect.memberType;
+export type MemberStatus = "Active" | "Inactive" | "Dormant";
 
 export type User = {
     userprofile: UserProfile | undefined;

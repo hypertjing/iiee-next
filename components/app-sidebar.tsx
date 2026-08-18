@@ -1,4 +1,4 @@
-import { ChevronUp, Home, LogOut, User2, Users } from "lucide-react";
+import { ChevronUp, Home, LogOut, User2, UserPen, Users } from "lucide-react";
 
 import { logout } from "@/app/actions/auth";
 import { getUser } from "@/app/lib/dal";
@@ -44,6 +44,11 @@ const items = [
         title: "Members",
         url: "/members",
         icon: Users,
+    },
+    {
+        title: "Profile",
+        url: "/profile",
+        icon: UserPen,
     },
 ];
 

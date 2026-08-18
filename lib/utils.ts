@@ -46,3 +46,23 @@ export function isValidDateString(dateString: string) {
         date.getDate() === day
     );
 }
+
+// type MapLicenseTypeReturnType =
+//     | "Registered Master Electrician"
+//     | "Registered Electrical Engineer"
+//     | "Professional Electrical Engineer"
+//     | "Bachelor of Science in Electrical Engineering";
+
+// export function mapLicenseType(
+//     type: "RME" | "REE" | "PEE" | "BSEE",
+// ): MapLicenseTypeReturnType {
+//     if (type === "RME") {
+//         return "Registered Master Electrician";
+//     } else if (type === "REE") {
+//         return "Registered Electrical Engineer";
+//     } else if (type === "PEE") {
+//         return "Professional Electrical Engineer";
+//     } else {
+//         return "Bachelor of Science in Electrical Engineering";
+//     }
+// }
