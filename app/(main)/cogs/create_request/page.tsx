@@ -1,4 +1,4 @@
-import { getUser } from "@/app/lib/dal";
+import { getUser, isMembershipExpired } from "@/app/lib/dal";
 import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
 import { db_old } from "@/db/old";
@@ -122,6 +122,17 @@ export default async function CogsPage() {
     //     return <div>Access Denied</div>;
     // }
     // await sleep(1000);
+
+    const expired_mem = await isMembershipExpired(user.userprofile);
+
+    if (expired_mem) {
+        return (
+            <div className="text-amber-700 text-sm border border-amber-400 rounded inline-block bg-amber-50 p-1 px-2">
+                Expired membership cannot request for cogs
+            </div>
+        );
+    }
+
     return (
         <div>
             <Link href="/cogs">

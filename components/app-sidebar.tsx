@@ -59,16 +59,11 @@ export async function AppSidebar() {
         redirect("/login");
     }
 
-    const { userprofile, account } = auth;
+    const { account } = auth;
 
-    const date_now = new Date(Date.now());
-    // const exp_test = new Date(Date.now());
-    // exp_test.setFullYear(2024);
-
-    if (userprofile && date_now > userprofile.membershipValidity) {
-        redirect("/membership_expired");
-        // console.log(userprofile.membershipValidity, date_now);
-    }
+    // if (userprofile && (await isMembershipExpired(userprofile))) {
+    //     redirect("/membership_expired");
+    // }
 
     // const notification_count = await db_new.$count(
     //     cogsrequest,
