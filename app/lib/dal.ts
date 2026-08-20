@@ -320,6 +320,6 @@ export async function getUserMembershipInfo(
 
 export async function isMembershipExpired(userprofile: UserProfile) {
     const date_now = new Date(Date.now());
-    return true;
+    // return true;
     return date_now > userprofile.membershipValidity;
 }
