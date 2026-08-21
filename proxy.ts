@@ -19,7 +19,7 @@ export default async function proxy(req: NextRequest) {
     // 4. Redirect to /login if the user is not authenticated
     if (isPublicRoute) {
         if (session?.userId) {
-            return NextResponse.redirect(new URL("/cogs", req.nextUrl));
+            return NextResponse.redirect(new URL("/profile", req.nextUrl));
         }
 
         return NextResponse.next();

@@ -14,6 +14,21 @@ import Link from "next/link";
 import path from "path";
 
 export default async function CogsPage() {
+    const user = await getUser();
+
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
+    if (user.userprofile == null) {
+        return (
+            <div>
+                A user without profile cannot request for cogs{" "}
+                {/* {user.account.fkUserControlCode} */}
+            </div>
+        );
+    }
+
     async function saveFile(
         file: File,
         folder: string,
@@ -37,6 +52,16 @@ export default async function CogsPage() {
 
     async function submitRequest(formData: CogsRequestFormType) {
         "use server";
+
+        if (
+            user?.account.fkUserProfilesId == 0 ||
+            user?.account.akUserAccountsType == "ADMIN"
+        ) {
+            return {
+                success: false,
+                message: "A user without profile cannot request for cogs.",
+            };
+        }
 
         if (formData.fee == undefined) {
             return {
@@ -90,21 +115,6 @@ export default async function CogsPage() {
         return { success: true, message: "Request submitted successfully." };
     }
 
-    const user = await getUser();
-
-    if (!user) {
-        return <div>Loading...</div>;
-    }
-
-    if (user.userprofile == null) {
-        return (
-            <div>
-                A user without profile cannot request cogs{" "}
-                {/* {user.account.fkUserControlCode} */}
-            </div>
-        );
-    }
-
     const db_fees = await db_old
         .select()
         .from(fees)
@@ -123,7 +133,7 @@ export default async function CogsPage() {
     // }
     // await sleep(1000);
 
-    const expired_mem = await isMembershipExpired(user.userprofile);
+    const expired_mem = await isMembershipExpired(user);
 
     if (expired_mem) {
         return (

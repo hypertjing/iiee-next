@@ -21,7 +21,12 @@ export default async function page() {
     }
 
     if (!user.userprofile) {
-        return;
+        return (
+            <div>
+                A user without profile cannot request for cogs{" "}
+                {/* {user.account.fkUserControlCode} */}
+            </div>
+        );
     }
 
     const user_position_code = user.account.fkUserControlCode;
@@ -51,7 +56,7 @@ export default async function page() {
         return cogs_requests_temp;
     });
 
-    const expired_mem = await isMembershipExpired(user.userprofile);
+    const expired_mem = await isMembershipExpired(user);
 
     return (
         <div>

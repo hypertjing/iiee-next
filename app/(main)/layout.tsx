@@ -35,11 +35,7 @@ async function UserContextDataFetcher(props: { children: React.ReactNode }) {
         redirect("/login");
     }
 
-    if (!user.userprofile) {
-        return;
-    }
-
-    const expired_mem = await isMembershipExpired(user.userprofile);
+    const expired_mem = await isMembershipExpired(user);
 
     return (
         <>
@@ -53,7 +49,9 @@ async function UserContextDataFetcher(props: { children: React.ReactNode }) {
     );
 }
 
-async function ExpiredMembershipPrompt(props: { userprofile: UserProfile }) {
+async function ExpiredMembershipPrompt(props: {
+    userprofile: UserProfile | undefined;
+}) {
     return (
         <Card className="absolute fixed right-10 bottom-10 z-[1000] shadow-2xl border-2 border-amber-500 bg-amber-50 rounded-xl">
             <CardHeader>
@@ -70,7 +68,7 @@ async function ExpiredMembershipPrompt(props: { userprofile: UserProfile }) {
                         day: "2-digit",
                         month: "long",
                         year: "numeric",
-                    }).format(props.userprofile.membershipValidity)}
+                    }).format(props.userprofile?.membershipValidity)}
                 </div>
                 <div>
                     Please renew your membership at your earliest convenience.

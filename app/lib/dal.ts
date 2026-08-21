@@ -15,12 +15,7 @@ import {
     userprofiles,
 } from "@/db/old/drizzle/schema";
 import { isExpired } from "@/lib/utils";
-import {
-    LicenseCodeType,
-    MemberStatus,
-    MemberType,
-    UserProfile,
-} from "@/types";
+import { LicenseCodeType, MemberStatus, MemberType, User } from "@/types";
 import { desc, eq } from "drizzle-orm";
 import { cacheLife } from "next/cache";
 import { cookies } from "next/headers";
@@ -318,8 +313,11 @@ export async function getUserMembershipInfo(
     };
 }
 
-export async function isMembershipExpired(userprofile: UserProfile) {
+export async function isMembershipExpired(user: User) {
     const date_now = new Date(Date.now());
+    if (!user.userprofile) {
+        return false;
+    }
     // return true;
-    return date_now > userprofile.membershipValidity;
+    return date_now > user.userprofile.membershipValidity;
 }

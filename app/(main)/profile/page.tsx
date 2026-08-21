@@ -5,14 +5,6 @@ import MemberPersonalInformation from "./components/MemberPersonalInformation";
 import MembershipOverview from "./components/MembershipOverview";
 import ProfileBanner from "./components/ProfileBanner";
 
-type License = {
-    id: string;
-    name: string;
-    licenseNumber: string;
-    status: "Active" | "Expired";
-    validUntil: string;
-};
-
 export default async function ProfilePage() {
     const user = await getUser();
 
@@ -33,7 +25,10 @@ export default async function ProfilePage() {
                     </p>
                 </div>
                 {!user.userprofile && (
-                    <div>This user have no profile information</div>
+                    <div>
+                        This user have no profile information. The user maybe an
+                        admin.
+                    </div>
                 )}
                 {/* Profile Hero */}
                 <ProfileBanner />
