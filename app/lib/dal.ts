@@ -132,13 +132,6 @@ export const getUser = cache(async () => {
 // }
 
 export async function getUserMailingAddress(profile_id: number) {
-    const auth = await getUser();
-    if (!auth) return null;
-
-    if (!auth.userprofile) {
-        return null;
-    }
-
     const userprofile = (
         await db_old
             .select({
@@ -176,13 +169,6 @@ export async function getUserMailingAddress(profile_id: number) {
 }
 
 export async function getUserPermanentAddress(profile_id: number) {
-    const auth = await getUser();
-    if (!auth) return null;
-
-    if (!auth.userprofile) {
-        return null;
-    }
-
     const userprofile = (
         await db_old
             .select({

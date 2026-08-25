@@ -1,6 +1,7 @@
-import { getUser, getUserMembershipInfo } from "@/app/lib/dal";
+import { getUserMembershipInfo } from "@/app/lib/dal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MemberStatus } from "@/types";
 import {
     Building2,
@@ -11,22 +12,16 @@ import {
     ShieldCheck,
     UserStar,
 } from "lucide-react";
+import { cacheLife } from "next/cache";
 import DetailItem from "./DetailItem";
 
-export default async function MembershipOverview() {
-    const user = await getUser();
+export default async function MembershipOverview(props: {
+    profile_id: number;
+}) {
+    "use cache";
+    cacheLife("default");
 
-    if (!user) {
-        return <div>Loading user information...</div>;
-    }
-
-    if (!user.userprofile) {
-        return;
-    }
-
-    const membership_info = await getUserMembershipInfo(
-        user.userprofile.pkUserProfilesId,
-    );
+    const membership_info = await getUserMembershipInfo(props.profile_id);
 
     const is_membership_expired: MemberStatus =
         membership_info.membership_status;
@@ -117,4 +112,8 @@ function Active() {
 }
 function Dormant() {
     return <Badge className="bg-amber-600">Dormant</Badge>;
+}
+
+export function MembershipOverviewLoader() {
+    return <Skeleton className="h-[200px] w-full" />;
 }

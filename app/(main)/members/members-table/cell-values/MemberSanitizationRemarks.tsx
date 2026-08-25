@@ -1,3 +1,5 @@
+"use client";
+
 import {
     AlertDialog,
     AlertDialogAction,
@@ -24,19 +26,22 @@ import {
     Trash,
     TriangleAlert,
 } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
-import { getMemberSanitizationRemarks, markMember } from "../action-sanitize";
+import { useState, useTransition } from "react";
+import { markMember } from "../../action-sanitize";
 
 export default function MemberSanitizationRemarks(props: {
     member_id: number;
+    remarks: SanitizationRemarksType | undefined;
 }) {
     const user = useUserContext();
     // const user_position_code: string = "P1";
     const user_position_code = user.account.fkUserControlCode;
+    const autorized_positions = ["ChapterPresidents"];
+    const is_autorized = autorized_positions.includes(user_position_code);
 
-    const [remarks, setRemarks] = useState<
-        SanitizationRemarksType | undefined
-    >();
+    const [remarks, setRemarks] = useState<SanitizationRemarksType | undefined>(
+        props.remarks,
+    );
 
     const [opened, setOpened] = useState<boolean>(false);
     const [errors, setErrors] = useState<string | null>(null);
@@ -60,12 +65,6 @@ export default function MemberSanitizationRemarks(props: {
         });
     }
 
-    useEffect(() => {
-        getMemberSanitizationRemarks(props.member_id).then((res) => {
-            setRemarks(res);
-        });
-    }, []);
-
     return (
         <>
             <div className="flex items-center justify-start gap-2">
@@ -80,9 +79,8 @@ export default function MemberSanitizationRemarks(props: {
                         </>
                     ) : (
                         <>
-                            {remarks === undefined &&
-                            user_position_code != "P1" ? (
-                                <div className="text-amber-700 bg-amber-100 border border-amber-600 px-1 rounded">
+                            {remarks === undefined && !is_autorized ? (
+                                <div className="text-amber-700 bg-amber-100 border border-amber-300 px-2 py-1 rounded">
                                     For evaluation
                                 </div>
                             ) : (
@@ -93,7 +91,7 @@ export default function MemberSanitizationRemarks(props: {
                                                 className="text-red-700 fill-red-300"
                                                 size={20}
                                             />{" "}
-                                            {user_position_code != "P1" && (
+                                            {!is_autorized && (
                                                 <div>To be deleted</div>
                                             )}
                                         </div>
@@ -104,9 +102,7 @@ export default function MemberSanitizationRemarks(props: {
                                                 className="text-green-700 fill-green-300"
                                                 size={20}
                                             />{" "}
-                                            {user_position_code != "P1" && (
-                                                <div>Retain</div>
-                                            )}
+                                            {!is_autorized && <div>Retain</div>}
                                         </div>
                                     )}
                                     {remarks === "hns" && (
@@ -115,7 +111,7 @@ export default function MemberSanitizationRemarks(props: {
                                                 className="text-amber-700 fill-amber-300"
                                                 size={20}
                                             />{" "}
-                                            {user_position_code != "P1" && (
+                                            {!is_autorized && (
                                                 <div>Hold, not sure</div>
                                             )}
                                         </div>
@@ -125,7 +121,7 @@ export default function MemberSanitizationRemarks(props: {
                         </>
                     )}
                 </div>
-                {user_position_code === "P1" && (
+                {is_autorized && (
                     <div className="w-full">
                         <Select
                             value={remarks}

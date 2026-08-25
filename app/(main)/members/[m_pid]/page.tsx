@@ -2,12 +2,22 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { db_old } from "@/db/old";
 import {
+    chapters,
     cities,
     countries,
     provinces,
+    regions,
     userprofiles,
 } from "@/db/old/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { Suspense } from "react";
+import MemberLicenses, {
+    MemberLicensesLoader,
+} from "../../profile/components/MemberLicenses";
+import MembershipOverview, {
+    MembershipOverviewLoader,
+} from "../../profile/components/MembershipOverview";
+import HistoryBackButton from "./HistoryBackButton";
 
 // Example user (replace with API/db fetch)
 
@@ -47,6 +57,22 @@ export default async function ProfilePage({
             .where(eq(countries.pkCountriesId, profile.fkCountriesId))
     )[0];
 
+    const chapter = (
+        await db_old
+            .select()
+            .from(chapters)
+            .where(eq(chapters.pkChaptersId, Number(profile.chapter)))
+            .limit(1)
+    )[0];
+
+    const region = (
+        await db_old
+            .select()
+            .from(regions)
+            .where(eq(regions.pkRegionsId, Number(profile.region)))
+            .limit(1)
+    )[0];
+
     // const user: UserAccount = member_data[0] as unknown as UserAccount;
 
     function calculateAge(birthDate: Date, referenceDate = new Date()) {
@@ -69,6 +95,9 @@ export default async function ProfilePage({
 
     return (
         <div className="min-h-screen">
+            <div className="mb-6">
+                <HistoryBackButton />
+            </div>
             {/* Page Title */}
             <h1 className="text-3xl font-bold mb-6">
                 {profile.fname} {profile.mname} {profile.lname} {profile.suffix}
@@ -77,13 +106,58 @@ export default async function ProfilePage({
             {/* Status */}
             <div className="mb-6">
                 <Badge
-                    className={`${profile.akUserProfilesFlag === "Verified" ? "bg-green-600" : "bg-red-600"}`}
+                    className={`${profile.akUserProfilesFlag === "Verified" ? "bg-green-600" : profile.akUserProfilesFlag === "Dormant" ? "bg-amber-500" : "bg-red-600"}`}
                 >
                     {profile.akUserProfilesFlag}
                 </Badge>
             </div>
 
-            <Separator />
+            <Separator className="my-6" />
+            <Suspense fallback={<MembershipOverviewLoader />}>
+                <MembershipOverview profile_id={profile.pkUserProfilesId} />
+            </Suspense>
+
+            <Separator className="my-6" />
+            <div>
+                <Suspense fallback={<MemberLicensesLoader />}>
+                    <MemberLicenses profile_id={profile.pkUserProfilesId} />
+                </Suspense>
+            </div>
+            <Separator className="my-6" />
+
+            {/* Membership Info */}
+            {/* <section className="space-y-2 mb-6">
+                <h2 className="text-xl font-semibold mb-2">
+                    Membership Information
+                </h2>
+                <div className="grid grid-cols-3 gap-6 text-sm">
+                    <div>
+                        <p className="font-medium">Membership No.</p>
+                        <p>{profile.membershipNo}</p>
+                    </div>
+                    <div>
+                        <p className="font-medium">Type</p>
+                        <p>{profile.memberType}</p>
+                    </div>
+
+                    <div>
+                        <p className="font-medium">Registered</p>
+                        <p>{profile.membershipDateReg.toDateString()}</p>
+                    </div>
+                    <div>
+                        <p className="font-medium">Validity</p>
+                        <p>{profile.membershipValidity.toDateString()}</p>
+                    </div>
+                    <div>
+                        <p className="font-medium">Region</p>
+                        <p>{region && region.description}</p>
+                    </div>
+                    <div>
+                        <p className="font-medium">Chapter</p>
+                        <p>{chapter && chapter.description}</p>
+                    </div>
+                </div>
+            </section> */}
 
             {/* Personal Info */}
             <section className="mt-6 space-y-2">
@@ -177,8 +251,11 @@ export default async function ProfilePage({
                                 .filter((item) => {
                                     return item != "";
                                 })
-                                .map((item) => (
-                                    <div className="bg-gray-100 px-3 py-1 rounded-md">
+                                .map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="bg-gray-100 px-3 py-1 rounded-md"
+                                    >
                                         {item}
                                     </div>
                                 ))}
@@ -187,31 +264,6 @@ export default async function ProfilePage({
                     <div>
                         <p className="font-medium">Sector</p>
                         <p>{profile.sector}</p>
-                    </div>
-                </div>
-            </section>
-
-            <Separator className="my-6" />
-
-            {/* Membership Info */}
-            <section className="space-y-2">
-                <h2 className="text-xl font-semibold mb-2">Membership</h2>
-                <div className="grid grid-cols-2 gap-6 text-sm">
-                    <div>
-                        <p className="font-medium">Membership No.</p>
-                        <p>{profile.membershipNo}</p>
-                    </div>
-                    <div>
-                        <p className="font-medium">Type</p>
-                        <p>{profile.memberType}</p>
-                    </div>
-                    <div>
-                        <p className="font-medium">Registered</p>
-                        <p>{profile.membershipDateReg.toDateString()}</p>
-                    </div>
-                    <div>
-                        <p className="font-medium">Validity</p>
-                        <p>{profile.membershipValidity.toDateString()}</p>
                     </div>
                 </div>
             </section>

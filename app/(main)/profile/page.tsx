@@ -1,9 +1,16 @@
 import { getUser } from "@/app/lib/dal";
-import MemberAddress from "./components/MemberAddress";
-import MemberLicenses from "./components/MemberLicenses";
-import MemberPersonalInformation from "./components/MemberPersonalInformation";
-import MembershipOverview from "./components/MembershipOverview";
-import ProfileBanner from "./components/ProfileBanner";
+import { Suspense } from "react";
+import MemberAddress, { MemberAddressLoader } from "./components/MemberAddress";
+import MemberLicenses, {
+    MemberLicensesLoader,
+} from "./components/MemberLicenses";
+import MemberPersonalInformation, {
+    MemberPersonalInformationLoader,
+} from "./components/MemberPersonalInformation";
+import MembershipOverview, {
+    MembershipOverviewLoader,
+} from "./components/MembershipOverview";
+import ProfileBanner, { ProfileBannerLoader } from "./components/ProfileBanner";
 
 export default async function ProfilePage() {
     const user = await getUser();
@@ -24,25 +31,54 @@ export default async function ProfilePage() {
                         View your membership and personal information.
                     </p>
                 </div>
-                {!user.userprofile && (
+                {!user.userprofile ? (
                     <div>
                         This user have no profile information. The user maybe an
                         admin.
                     </div>
+                ) : (
+                    <>
+                        <Suspense fallback={<ProfileBannerLoader />}>
+                            <ProfileBanner
+                                profile_id={user.userprofile.pkUserProfilesId}
+                            />
+                        </Suspense>
+
+                        {/* Membership Overview */}
+                        <Suspense fallback={<MembershipOverviewLoader />}>
+                            <MembershipOverview
+                                profile_id={user.userprofile.pkUserProfilesId}
+                            />
+                        </Suspense>
+
+                        <Suspense fallback={<MemberLicensesLoader />}>
+                            <MemberLicenses
+                                profile_id={user.userprofile.pkUserProfilesId}
+                            />
+                        </Suspense>
+                        {/* Main Content */}
+                        <div className="grid gap-6 lg:grid-cols-3">
+                            {/* Personal Information */}
+                            <Suspense
+                                fallback={<MemberPersonalInformationLoader />}
+                            >
+                                <MemberPersonalInformation
+                                    profile_id={
+                                        user.userprofile.pkUserProfilesId
+                                    }
+                                />
+                            </Suspense>
+                            <Suspense fallback={<MemberAddressLoader />}>
+                                <MemberAddress
+                                    profile_id={
+                                        user.userprofile.pkUserProfilesId
+                                    }
+                                />
+                            </Suspense>
+                        </div>
+                    </>
                 )}
                 {/* Profile Hero */}
-                <ProfileBanner />
-
-                {/* Membership Overview */}
-                <MembershipOverview />
-                <MemberLicenses />
-                {/* Main Content */}
-                <div className="grid gap-6 lg:grid-cols-3">
-                    {/* Personal Information */}
-                    <MemberPersonalInformation />
-
-                    <MemberAddress />
-                </div>
 
                 {/* Licenses */}
             </div>

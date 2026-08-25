@@ -24,33 +24,56 @@ export default function MemberLicenseBlock({ license }: { license: License }) {
 
             <div className="flex items-center gap-4">
                 <div className="text-left sm:text-right">
-                    {isExpired(new Date(license.UserLicense.validityDate)) ? (
-                        <Expired />
+                    {license.UserLicense.validityDate === "0000-00-00" ? (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                            <div>
+                                <InvalidExpirationDate />
+                            </div>
+                            <div className="mt-1">
+                                Date:{" "}
+                                <span className="font-semibold text-red-500">
+                                    {license.UserLicense.validityDate}
+                                </span>
+                            </div>
+                        </div>
                     ) : (
-                        <NotExpired />
-                    )}
-
-                    <p className="mt-1 text-xs text-muted-foreground">
-                        Valid until{" "}
-                        <span
-                            className={`font-semibold ${isExpired(new Date(license.UserLicense.validityDate)) ? "text-red-500" : "text-green-600"}`}
-                        >
-                            {Intl.DateTimeFormat(undefined, {
-                                weekday: "long",
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric",
-                            }).format(
+                        <>
+                            {isExpired(
                                 new Date(license.UserLicense.validityDate),
+                            ) ? (
+                                <Expired />
+                            ) : (
+                                <NotExpired />
                             )}
-                        </span>
-                    </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Valid until{" "}
+                                <span
+                                    className={`font-semibold ${isExpired(new Date(license.UserLicense.validityDate)) ? "text-red-500" : "text-green-600"}`}
+                                >
+                                    {Intl.DateTimeFormat(undefined, {
+                                        weekday: "long",
+                                        day: "2-digit",
+                                        month: "long",
+                                        year: "numeric",
+                                    }).format(
+                                        new Date(
+                                            license.UserLicense.validityDate,
+                                        ),
+                                    )}
+                                </span>
+                            </p>
+                        </>
+                    )}
                 </div>
 
                 <ChevronRight className="hidden h-4 w-4 text-muted-foreground sm:block" />
             </div>
         </div>
     );
+}
+
+function InvalidExpirationDate() {
+    return <Badge variant={"destructive"}>Invalide expiration date</Badge>;
 }
 
 function Expired() {

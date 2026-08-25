@@ -1,18 +1,17 @@
-import { getUser } from "@/app/lib/dal";
+import { getUserProfile } from "@/app/lib/dal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Cake, Gem, IdCard, Mail, Phone, User } from "lucide-react";
+import { cacheLife } from "next/cache";
 import DetailItem from "./DetailItem";
 
-export default async function MemberPersonalInformation() {
-    const user = await getUser();
+export default async function MemberPersonalInformation(props: {
+    profile_id: number;
+}) {
+    "use cache";
+    cacheLife("default");
 
-    if (!user) {
-        return <div>Loading user information...</div>;
-    }
-
-    if (!user.userprofile) {
-        return;
-    }
+    const userprofile = await getUserProfile(props.profile_id);
 
     return (
         <Card className="lg:col-span-2">
@@ -28,14 +27,14 @@ export default async function MemberPersonalInformation() {
                     <DetailItem
                         icon={User}
                         label="Full Name"
-                        value={`${user.userprofile.fname} ${user.userprofile.mname} ${user.userprofile.lname}`}
+                        value={`${userprofile.fname} ${userprofile.mname} ${userprofile.lname}`}
                     />
 
                     <DetailItem icon={IdCard} label="Gender" value={"Male"} />
                     <DetailItem
                         icon={Gem}
                         label="Civil Status"
-                        value={user.userprofile.civilStatus}
+                        value={userprofile.civilStatus}
                     />
 
                     <DetailItem
@@ -45,20 +44,24 @@ export default async function MemberPersonalInformation() {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
-                        }).format(user.userprofile.bdate)}
+                        }).format(userprofile.bdate)}
                     />
                     <DetailItem
                         icon={Phone}
                         label="Phone Number"
-                        value={user.userprofile.celNo}
+                        value={userprofile.celNo}
                     />
                     <DetailItem
                         icon={Mail}
                         label="Email Address"
-                        value={user.userprofile.email}
+                        value={userprofile.email}
                     />
                 </div>
             </CardContent>
         </Card>
     );
+}
+
+export function MemberPersonalInformationLoader() {
+    return <Skeleton className="h-[200px] w-full" />;
 }

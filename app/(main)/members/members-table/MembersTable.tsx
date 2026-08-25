@@ -1,6 +1,10 @@
-import { Eye, Loader2 } from "lucide-react";
+import { Eye } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react";
 
+import { getUser } from "@/app/lib/dal";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Table,
     TableBody,
@@ -9,20 +13,21 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { useUserContext } from "@/contexts/user-context";
-import { isExpired } from "@/lib/utils";
 import { MemberRegionChapter } from "@/types";
-import { format } from "date-fns";
-import Link from "next/link";
-import LicenseAndValidity from "./LicenseAndValidity";
-import MemberSanitizationRemarks from "./MemberSanitizationRemarks";
 
-export function MembersTable(props: {
-    data: MemberRegionChapter[];
-    pending: boolean;
-    pageSize: number;
-}) {
-    const user = useUserContext();
+import LicenseAndValidity from "./cell-values/LicenseAndValidity";
+import { MemberIdentity } from "./cell-values/MemberIdentity";
+import MemberSanitizationRemarksServer from "./cell-values/MemberSanitizationRemarksServer";
+import { MembershipStatus } from "./cell-values/MembershipStatus";
+import { RegionChapter } from "./cell-values/RegionChapter";
+
+export async function MembersTable(props: { data: MemberRegionChapter[] }) {
+    const user = await getUser();
+
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
     const user_position_code = user.account.fkUserControlCode;
 
     const allowed_positions = [
@@ -33,189 +38,168 @@ export function MembersTable(props: {
         "MCDC",
     ];
 
-    const member_visible = allowed_positions.includes(user_position_code)
-        ? true
-        : false;
+    const member_visible = allowed_positions.includes(user_position_code);
 
-    const data: MemberRegionChapter[] = props.data;
+    const data = props.data;
+
+    const columnCount = member_visible ? 7 : 6;
 
     return (
-        <>
-            <div className="overflow-hidden border rounded-md border-gray-300">
-                <Table className="overflow-hidden rounded-md border [&_th]:border [&_th]:border-gray-300 [&_td]:border [&_td]:border-gray-300">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Remarks</TableHead>
-
-                            <TableHead>Region</TableHead>
-                            <TableHead>Chapter</TableHead>
-                            {member_visible && <TableHead>Full Name</TableHead>}
-                            <TableHead>Member Type</TableHead>
-                            <TableHead>Member No.</TableHead>
-                            <TableHead>Validity</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>License</TableHead>
-                            <TableHead>Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody className="relative">
-                        {props.pending && (
-                            <TableRow className="border-0 absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center">
-                                <div
-                                    // colSpan={9}
-                                    className="flex items-center gap-2 border-0"
-                                >
-                                    <Loader2 className="animate-spin text-blue-500" />{" "}
-                                    Loading...
-                                </div>
-                            </TableRow>
+        <div className="overflow-hidden rounded-xl border bg-background">
+            <Table>
+                <TableHeader className="bg-muted/50">
+                    <TableRow className="hover:bg-transparent">
+                        {member_visible && (
+                            <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Member
+                            </TableHead>
                         )}
 
-                        {data.length ? (
-                            <>
-                                {data.map((data) => (
-                                    <TableRow
-                                        key={data.userprofiles.pkUserProfilesId}
-                                        className="hover:bg-sky-100"
+                        <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Membership
+                        </TableHead>
+
+                        <TableHead className="hidden h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground xl:table-cell">
+                            Region & Chapter
+                        </TableHead>
+
+                        <TableHead className="hidden h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground 2xl:table-cell">
+                            Licenses
+                        </TableHead>
+
+                        <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Remarks
+                        </TableHead>
+
+                        <TableHead className="h-12 px-4 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Action
+                        </TableHead>
+                    </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                    {data.length > 0 ? (
+                        data.map((data) => (
+                            <TableRow
+                                key={data.userprofiles.pkUserProfilesId}
+                                className="group border-b transition-colors hover:bg-muted/40"
+                            >
+                                {/* Member */}
+                                {member_visible && (
+                                    <TableCell className="px-4 py-4 align-top">
+                                        <MemberIdentity
+                                            firstName={data.userprofiles.fname}
+                                            middleName={data.userprofiles.mname}
+                                            lastName={data.userprofiles.lname}
+                                            membershipNo={
+                                                data.userprofiles.membershipNo
+                                            }
+                                        />
+                                    </TableCell>
+                                )}
+
+                                {/* Membership */}
+                                <TableCell className="px-4 py-4 align-top">
+                                    <MembershipStatus
+                                        membershipValidity={
+                                            data.userprofiles.membershipValidity
+                                        }
+                                        membershipType={
+                                            data.userprofiles.memberType
+                                        }
+                                    />
+                                </TableCell>
+
+                                {/* Region & Chapter */}
+                                <TableCell className="hidden px-4 py-4 align-top xl:table-cell">
+                                    <RegionChapter
+                                        region={data.region}
+                                        chapter={data.chapter}
+                                    />
+                                </TableCell>
+
+                                {/* Licenses */}
+                                <TableCell className="hidden px-4 py-4 align-top 2xl:table-cell">
+                                    {data.userlicense == null ||
+                                    data.userlicense.length === 0 ? (
+                                        <span className="text-sm text-muted-foreground">
+                                            No license
+                                        </span>
+                                    ) : (
+                                        <div className="">
+                                            {data.userlicense.map(
+                                                (userlicense, index) => (
+                                                    <LicenseAndValidity
+                                                        key={
+                                                            userlicense.pkUserLicenseId
+                                                        }
+                                                        index={index + 1}
+                                                        number_of_licenses={
+                                                            data.userlicense
+                                                                ?.length
+                                                        }
+                                                        userlicense={
+                                                            userlicense
+                                                        }
+                                                    />
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+                                </TableCell>
+
+                                {/* Remarks */}
+                                <TableCell className="px-4 py-4 align-top">
+                                    <Suspense
+                                        fallback={
+                                            <Skeleton className="h-[25px] w-full" />
+                                        }
                                     >
-                                        <TableCell className="align-top">
-                                            <MemberSanitizationRemarks
-                                                member_id={
-                                                    data.userprofiles
-                                                        .pkUserProfilesId
-                                                }
-                                            />
-                                        </TableCell>
-
-                                        <TableCell className="align-top">
-                                            {data.region?.description}
-                                        </TableCell>
-                                        <TableCell className="align-top">
-                                            {data.chapter?.description || "N/A"}
-                                        </TableCell>
-                                        {member_visible && (
-                                            <TableCell className="align-top">
-                                                {data.userprofiles.lname},{" "}
-                                                {data.userprofiles.fname}{" "}
-                                                {data.userprofiles.mname}
-                                            </TableCell>
-                                        )}
-                                        <TableCell className="align-top">
-                                            {data.userprofiles.memberType}
-                                        </TableCell>
-                                        <TableCell className="align-top">
-                                            {data.userprofiles.membershipNo}
-                                        </TableCell>
-                                        <TableCell className="align-top">
-                                            <div
-                                                className={` ${
-                                                    isExpired(
-                                                        data.userprofiles
-                                                            .membershipValidity,
-                                                    )
-                                                        ? "text-red-600"
-                                                        : ""
-                                                }`}
-                                            >
-                                                {data.userprofiles.membershipValidity.getFullYear() !=
-                                                3000
-                                                    ? format(
-                                                          new Date(
-                                                              data.userprofiles
-                                                                  .membershipValidity,
-                                                          ),
-                                                          "MMM d, yyyy",
-                                                      )
-                                                    : "Life"}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="align-top">
-                                            {isExpired(
+                                        <MemberSanitizationRemarksServer
+                                            member_id={
                                                 data.userprofiles
-                                                    .membershipValidity,
-                                            ) === true && (
-                                                <div className="rounded-md text-white bg-red-500 px-2 py-1 text-center">
-                                                    Inactive
-                                                </div>
-                                            )}
+                                                    .pkUserProfilesId
+                                            }
+                                        />
+                                    </Suspense>
+                                </TableCell>
 
-                                            {isExpired(
-                                                data.userprofiles
-                                                    .membershipValidity,
-                                            ) === false && (
-                                                <div className="rounded-md text-white bg-green-600 px-2 py-1 text-center">
-                                                    Active
-                                                </div>
-                                            )}
-
-                                            {isExpired(
-                                                data.userprofiles
-                                                    .membershipValidity,
-                                            ) === "dormant" && (
-                                                <div className="rounded-md text-white bg-amber-500 px-2 py-1 text-center">
-                                                    Dormant
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="align-top">
-                                            {data.userlicense == null ? (
-                                                "No license"
-                                            ) : (
-                                                <div className="space-y-[1px]">
-                                                    {data.userlicense.map(
-                                                        (
-                                                            userlicense,
-                                                            index,
-                                                        ) => {
-                                                            return (
-                                                                <LicenseAndValidity
-                                                                    index={
-                                                                        index +
-                                                                        1
-                                                                    }
-                                                                    number_of_licenses={
-                                                                        data
-                                                                            .userlicense
-                                                                            ?.length
-                                                                    }
-                                                                    userlicense={
-                                                                        userlicense
-                                                                    }
-                                                                />
-                                                            );
-                                                        },
-                                                    )}
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="align-top">
-                                            <Link
-                                                href={`/members/${data.userprofiles.pkUserProfilesId}`}
-                                            >
-                                                <Button
-                                                    variant={"outline"}
-                                                    size={"sm"}
-                                                >
-                                                    <Eye />
-                                                </Button>
-                                            </Link>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </>
-                        ) : (
-                            <TableRow className="border-0">
-                                <TableCell
-                                    colSpan={9}
-                                    className="h-24 text-center border-0"
-                                >
-                                    No results.
+                                {/* Action */}
+                                <TableCell className="px-4 py-4 text-center align-top">
+                                    <Link
+                                        href={`/members/${data.userprofiles.pkUserProfilesId}`}
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="transition-colors group-hover:bg-background"
+                                        >
+                                            <Eye className="size-4" />
+                                        </Button>
+                                    </Link>
                                 </TableCell>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-        </>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell
+                                colSpan={columnCount}
+                                className="h-32 text-center"
+                            >
+                                <div className="flex flex-col items-center justify-center gap-1">
+                                    <span className="font-medium">
+                                        No members found
+                                    </span>
+
+                                    <span className="text-sm text-muted-foreground">
+                                        Try adjusting your search or filters.
+                                    </span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </div>
     );
 }

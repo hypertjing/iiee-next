@@ -182,19 +182,6 @@ export default function Member(props: { regions_list: MemberRegions[] }) {
                         />
                     </div>
                 </div>
-                {/* <div className="w-full ">
-                    <div className="text-lg font-semibold flex items-center gap-2 mb-5">
-                        <Users className="w-5 h-5 text-blue-500" />
-                        License Status Overview
-                    </div>
-                    <div className="">
-                        <MemberStatusDashboard
-                            totalMembers={max_page}
-                            activeCount={active_member}
-                            inactiveCount={inactive_member}
-                        />
-                    </div>
-                </div> */}
             </div>
             {/* Search filters  */}
             <div className="flex flex-col gap-2">
@@ -368,9 +355,8 @@ export default function Member(props: { regions_list: MemberRegions[] }) {
             </div>
 
             <MembersTable
-                pending={pending}
+                // pending={pending}
                 data={user_profiles}
-                pageSize={limit}
             />
             {pending && max_page == 0 ? (
                 "Loading..."

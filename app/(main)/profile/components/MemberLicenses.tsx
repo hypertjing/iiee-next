@@ -1,39 +1,16 @@
-import { getUser, getUserLicenses } from "@/app/lib/dal";
+import { getUserLicenses } from "@/app/lib/dal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FileBadge2 } from "lucide-react";
+import { cacheLife } from "next/cache";
 import MemberLicenseBlock from "./MemberLicenseBlock";
 
-export default async function MemberLicenses() {
-    // const user_licenses = [
-    //     {
-    //         id: "1",
-    //         name: "Professional License",
-    //         licenseNumber: "PRC-1234567",
-    //         status: "Active",
-    //         validUntil: "June 30, 2028",
-    //     },
-    //     {
-    //         id: "2",
-    //         name: "Specialty License",
-    //         licenseNumber: "SL-2026-00981",
-    //         status: "Active",
-    //         validUntil: "December 31, 2027",
-    //     },
-    // ];
-    const user = await getUser();
+export default async function MemberLicenses(props: { profile_id: number }) {
+    "use cache";
+    cacheLife("default");
 
-    if (!user) {
-        return <div>Loading user information...</div>;
-    }
-
-    if (!user.userprofile) {
-        return;
-    }
-
-    const user_licenses = await getUserLicenses(
-        user.userprofile.pkUserProfilesId,
-    );
+    const user_licenses = await getUserLicenses(props.profile_id);
 
     return (
         <Card>
@@ -66,4 +43,8 @@ export default async function MemberLicenses() {
             </CardContent>
         </Card>
     );
+}
+
+export function MemberLicensesLoader() {
+    return <Skeleton className="h-[200px] w-full" />;
 }
