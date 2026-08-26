@@ -11,6 +11,7 @@ import MembershipOverview, {
     MembershipOverviewLoader,
 } from "./components/MembershipOverview";
 import ProfileBanner, { ProfileBannerLoader } from "./components/ProfileBanner";
+import ReloadButton from "./components/ReloadButton";
 
 export default async function ProfilePage() {
     const user = await getUser();
@@ -31,6 +32,7 @@ export default async function ProfilePage() {
                         View your membership and personal information.
                     </p>
                 </div>
+
                 {!user.userprofile ? (
                     <div>
                         This user have no profile information. The user maybe an
@@ -38,13 +40,17 @@ export default async function ProfilePage() {
                     </div>
                 ) : (
                     <>
+                        <div>
+                            <ReloadButton
+                                profile_id={user.userprofile.pkUserProfilesId}
+                            />
+                        </div>
                         <Suspense fallback={<ProfileBannerLoader />}>
                             <ProfileBanner
                                 profile_id={user.userprofile.pkUserProfilesId}
                             />
                         </Suspense>
 
-                        {/* Membership Overview */}
                         <Suspense fallback={<MembershipOverviewLoader />}>
                             <MembershipOverview
                                 profile_id={user.userprofile.pkUserProfilesId}
@@ -56,9 +62,8 @@ export default async function ProfilePage() {
                                 profile_id={user.userprofile.pkUserProfilesId}
                             />
                         </Suspense>
-                        {/* Main Content */}
+
                         <div className="grid gap-6 lg:grid-cols-3">
-                            {/* Personal Information */}
                             <Suspense
                                 fallback={<MemberPersonalInformationLoader />}
                             >
@@ -78,9 +83,6 @@ export default async function ProfilePage() {
                         </div>
                     </>
                 )}
-                {/* Profile Hero */}
-
-                {/* Licenses */}
             </div>
         </main>
     );

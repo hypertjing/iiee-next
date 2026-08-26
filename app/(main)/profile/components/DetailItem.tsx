@@ -18,7 +18,9 @@ export default function DetailItem({
             <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">{label}</p>
 
-                <p className="mt-1 break-words text-sm font-medium">{value}</p>
+                <div className="mt-1 break-words text-sm font-medium">
+                    {value}
+                </div>
             </div>
         </div>
     );

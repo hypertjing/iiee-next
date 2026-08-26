@@ -2,7 +2,7 @@ import { getUserProfile } from "@/app/lib/dal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Cake, Gem, IdCard, Mail, Phone, User } from "lucide-react";
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import DetailItem from "./DetailItem";
 
 export default async function MemberPersonalInformation(props: {
@@ -10,6 +10,7 @@ export default async function MemberPersonalInformation(props: {
 }) {
     "use cache";
     cacheLife("default");
+    cacheTag(`profile-${props.profile_id}`);
 
     const userprofile = await getUserProfile(props.profile_id);
 
@@ -63,5 +64,40 @@ export default async function MemberPersonalInformation(props: {
 }
 
 export function MemberPersonalInformationLoader() {
-    return <Skeleton className="h-[200px] w-full" />;
+    return (
+        <section className="rounded-xl border bg-background p-6 lg:col-span-2">
+            <div className="mb-8">
+                <Skeleton className="h-6 w-52" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
+                <PersonalDetailSkeleton labelWidth="w-20" valueWidth="w-48" />
+
+                <PersonalDetailSkeleton labelWidth="w-14" valueWidth="w-12" />
+
+                <PersonalDetailSkeleton labelWidth="w-20" valueWidth="w-20" />
+
+                <PersonalDetailSkeleton labelWidth="w-20" valueWidth="w-40" />
+
+                <PersonalDetailSkeleton labelWidth="w-28" valueWidth="w-36" />
+
+                <PersonalDetailSkeleton labelWidth="w-24" valueWidth="w-52" />
+            </div>
+        </section>
+    );
+}
+
+function PersonalDetailSkeleton({
+    labelWidth,
+    valueWidth,
+}: {
+    labelWidth: string;
+    valueWidth: string;
+}) {
+    return (
+        <div className="flex flex-col gap-1.5">
+            <Skeleton className={`h-4 ${labelWidth}`} />
+            <Skeleton className={`h-5 ${valueWidth}`} />
+        </div>
+    );
 }

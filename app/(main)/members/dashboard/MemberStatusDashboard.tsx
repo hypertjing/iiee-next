@@ -33,7 +33,7 @@ const MemberStatusDashboard: React.FC<MemberStatusDashboardProps> = ({
             percentage: activePercentage,
             icon: UserCheck,
             iconClass: "text-emerald-600",
-            tileClass: "border-none bg-neutral-100",
+            tileClass: "border bg-white",
             progressColor: "bg-emerald-500",
         },
         {
@@ -42,7 +42,7 @@ const MemberStatusDashboard: React.FC<MemberStatusDashboardProps> = ({
             percentage: inactivePercentage,
             icon: UserX,
             iconClass: "text-red-600",
-            tileClass: "border-none bg-neutral-100",
+            tileClass: "border bg-white",
             progressColor: "bg-red-500",
         },
         {
@@ -51,14 +51,14 @@ const MemberStatusDashboard: React.FC<MemberStatusDashboardProps> = ({
             percentage: dormantPercentage,
             icon: UserRoundMinus,
             iconClass: "text-amber-600",
-            tileClass: "border-none bg-neutral-100",
+            tileClass: "border bg-white",
             progressColor: "bg-amber-500",
         },
     ];
 
     return (
         <>
-            <div className="flex items-center gap-3 rounded-lg border-none bg-neutral-100 px-4 py-3 mb-4">
+            <div className="flex items-center gap-3 rounded-xl border bg-white p-5 mb-4">
                 <div className="flex size-9 items-center justify-center rounded-md border bg-background">
                     <span className="text-sm font-semibold text-muted-foreground">
                         #

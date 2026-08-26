@@ -13,7 +13,7 @@ import {
 import { MemberChapters, MemberRegions } from "@/types";
 import { Loader2, RotateCcw, RotateCw } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LicenseType, MemberStatusType, reloadMembersTable } from "../actions";
 import MembersTablePagination from "./MembersTablePagination";
 
@@ -35,9 +35,15 @@ export default function MembersSearchFilters(props: {
     const [limit, setLimit] = useState(5);
     const [offset, setOffset] = useState(0);
 
-    const [pending, startTransition] = useTransition();
+    // Loading state for filter/search/pagination navigation
+    const [loading, setLoading] = useState(false);
+
+    // Separate loading state for cache/data refresh
     const [reload_pending, setReloadPending] = useState(false);
 
+    /**
+     * Reload cached member data.
+     */
     const handleReload = async () => {
         if (reload_pending) return;
 
@@ -72,10 +78,10 @@ export default function MembersSearchFilters(props: {
             // Reset pagination whenever a filter changes
             params.set("offset", "0");
 
-            startTransition(() => {
-                router.replace(`/members?${params.toString()}`, {
-                    scroll: false,
-                });
+            setLoading(true);
+
+            router.replace(`/members?${params.toString()}`, {
+                scroll: false,
             });
         },
         [router, searchParams],
@@ -90,10 +96,10 @@ export default function MembersSearchFilters(props: {
 
             params.set("offset", String(newOffset));
 
-            startTransition(() => {
-                router.replace(`/members?${params.toString()}`, {
-                    scroll: false,
-                });
+            setLoading(true);
+
+            router.replace(`/members?${params.toString()}`, {
+                scroll: false,
             });
         },
         [router, searchParams],
@@ -105,43 +111,56 @@ export default function MembersSearchFilters(props: {
     const handleResetFilters = useCallback(() => {
         const params = new URLSearchParams();
 
-        // Preserve the current limit
+        // Preserve rows per page
         params.set("limit", String(limit));
 
         // Reset pagination
         params.set("offset", "0");
 
-        startTransition(() => {
-            router.replace(`/members?${params.toString()}`, {
-                scroll: false,
-            });
+        setLoading(true);
+
+        router.replace(`/members?${params.toString()}`, {
+            scroll: false,
         });
     }, [router, limit]);
 
     /**
      * Keep local state synchronized with URL parameters.
+     *
+     * Once Next.js has applied the new URL,
+     * this effect runs and ends the loading state.
      */
-    const deps_regs = [
-        searchParams.get("keyword"),
-        searchParams.get("region"),
-        searchParams.get("chapter"),
-        searchParams.get("member_type"),
-        searchParams.get("status"),
-        searchParams.get("license_type"),
-        searchParams.get("limit"),
-        searchParams.get("offset"),
-    ];
+    const keywordParam = searchParams.get("keyword");
+    const regionParam = searchParams.get("region");
+    const chapterParam = searchParams.get("chapter");
+    const statusParam = searchParams.get("status");
+    const memberTypeParam = searchParams.get("member_type");
+    const licenseTypeParam = searchParams.get("license_type");
+    const limitParam = searchParams.get("limit");
+    const offsetParam = searchParams.get("offset");
 
     useEffect(() => {
-        setKeyword(searchParams.get("keyword") ?? "");
-        setRegion(searchParams.get("region") ?? "all");
-        setChapter(searchParams.get("chapter") ?? "all");
-        setMemberStatus(searchParams.get("status") ?? "all");
-        setMemberType(searchParams.get("member_type") ?? "all");
-        setLicenseType(searchParams.get("license_type") ?? "all");
-        setLimit(Number(searchParams.get("limit") ?? "5"));
-        setOffset(Number(searchParams.get("offset") ?? "0"));
-    }, deps_regs);
+        setKeyword(keywordParam ?? "");
+        setRegion(regionParam ?? "all");
+        setChapter(chapterParam ?? "all");
+        setMemberStatus(statusParam ?? "all");
+        setMemberType(memberTypeParam ?? "all");
+        setLicenseType(licenseTypeParam ?? "all");
+        setLimit(Number(limitParam ?? "5"));
+        setOffset(Number(offsetParam ?? "0"));
+
+        // URL has finished updating
+        setLoading(false);
+    }, [
+        keywordParam,
+        regionParam,
+        chapterParam,
+        statusParam,
+        memberTypeParam,
+        licenseTypeParam,
+        limitParam,
+        offsetParam,
+    ]);
 
     /**
      * Determine whether any filter is currently active.
@@ -163,294 +182,319 @@ export default function MembersSearchFilters(props: {
 
     const handleJumpToPage = useCallback(
         (page: number) => {
-            if (pending) return;
+            if (loading || reload_pending) return;
 
             const clamped = Math.min(Math.max(page, 1), total_pages);
 
             updateOffsetParam((clamped - 1) * limit);
         },
-        [pending, total_pages, limit, updateOffsetParam],
+        [loading, reload_pending, total_pages, limit, updateOffsetParam],
     );
 
     const handlePaginationNext = useCallback(() => {
-        if (pending || current_page >= total_pages) {
+        if (loading || reload_pending || current_page >= total_pages) {
             return;
         }
 
         updateOffsetParam(offset + limit);
-    }, [pending, current_page, total_pages, offset, limit, updateOffsetParam]);
+    }, [
+        loading,
+        reload_pending,
+        current_page,
+        total_pages,
+        offset,
+        limit,
+        updateOffsetParam,
+    ]);
 
     const handlePaginationPrev = useCallback(() => {
-        if (pending || current_page <= 1) {
+        if (loading || reload_pending || current_page <= 1) {
             return;
         }
 
         updateOffsetParam(Math.max(0, offset - limit));
-    }, [pending, current_page, offset, limit, updateOffsetParam]);
+    }, [
+        loading,
+        reload_pending,
+        current_page,
+        offset,
+        limit,
+        updateOffsetParam,
+    ]);
+
+    const isBusy = loading || reload_pending;
 
     return (
         <div>
-            {/* Search */}
-            <div className="flex flex-col gap-2">
-                <Label htmlFor="member-search">Search</Label>
+            {/* Search + Filters */}
+            <div className="mb-4 rounded-xl border bg-white p-5">
+                {/* Search */}
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="member-search">Search</Label>
 
-                <Input
-                    id="member-search"
-                    disabled={pending || reload_pending}
-                    className="w-[400px]"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            updateSearchParam("keyword", keyword.trim());
-                        }
-                    }}
-                    placeholder="Search member"
-                />
-            </div>
-
-            {/* Filters */}
-            <div className="flex justify-between gap-4 py-4">
-                <div className="flex flex-wrap gap-2">
-                    {/* Region */}
-                    <div className="flex flex-col gap-2">
-                        <Label>Region</Label>
-
-                        <Select
-                            value={region}
-                            onValueChange={(value) =>
-                                updateSearchParam("region", value)
+                    <Input
+                        id="member-search"
+                        disabled={isBusy}
+                        className="w-[400px] bg-white"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                updateSearchParam("keyword", keyword.trim());
                             }
-                            disabled={pending || reload_pending}
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Region" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-
-                                {props.regions_list.map((region) => (
-                                    <SelectItem
-                                        key={region.pkRegionsId}
-                                        value={region.code}
-                                    >
-                                        {region.description}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Chapter */}
-                    <div className="flex flex-col gap-2">
-                        <Label>Chapter</Label>
-
-                        <Select
-                            value={chapter}
-                            onValueChange={(value) =>
-                                updateSearchParam("chapter", value)
-                            }
-                            disabled={pending || reload_pending}
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Chapter" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-
-                                {props.member_chapters_select.map((chapter) => (
-                                    <SelectItem
-                                        key={chapter.pkChaptersId}
-                                        value={chapter.code}
-                                    >
-                                        {chapter.description}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Member Type */}
-                    <div className="flex flex-col gap-2">
-                        <Label>Member Type</Label>
-
-                        <Select
-                            value={member_type}
-                            onValueChange={(value) =>
-                                updateSearchParam("member_type", value)
-                            }
-                            disabled={pending || reload_pending}
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Member Type" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-
-                                <SelectItem value="Auxiliary">
-                                    Auxiliary
-                                </SelectItem>
-
-                                <SelectItem value="Associate">
-                                    Associate
-                                </SelectItem>
-
-                                <SelectItem value="Fellow">Fellow</SelectItem>
-
-                                <SelectItem value="Life">Life</SelectItem>
-
-                                <SelectItem value="Regular">Regular</SelectItem>
-
-                                <SelectItem value="Senior">Senior</SelectItem>
-
-                                <SelectItem value="NewMember">
-                                    New Member
-                                </SelectItem>
-
-                                <SelectItem value="NewBoard">
-                                    NewBoard
-                                </SelectItem>
-
-                                <SelectItem value="Honorary">
-                                    Honorary
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Status */}
-                    <div className="flex flex-col gap-2">
-                        <Label>Status</Label>
-
-                        <Select
-                            value={member_status}
-                            onValueChange={(value: MemberStatusType) =>
-                                updateSearchParam("status", value)
-                            }
-                            disabled={pending || reload_pending}
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-
-                                <SelectItem value="active">Active</SelectItem>
-
-                                <SelectItem value="inactive">
-                                    Inactive
-                                </SelectItem>
-
-                                <SelectItem value="dormant">Dormant</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* License Type */}
-                    <div className="flex flex-col gap-2">
-                        <Label>License Type</Label>
-
-                        <Select
-                            value={license_type}
-                            onValueChange={(value: LicenseType) =>
-                                updateSearchParam("license_type", value)
-                            }
-                            disabled={pending || reload_pending}
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="License Type" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-
-                                <SelectItem value="BSEE">BSEE</SelectItem>
-
-                                <SelectItem value="RME">RME</SelectItem>
-
-                                <SelectItem value="REE">REE</SelectItem>
-
-                                <SelectItem value="PEE">PEE</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                        }}
+                        placeholder="Search member"
+                    />
                 </div>
 
-                {/* Right-side Actions */}
-                <div className="flex shrink-0 items-end justify-end gap-2">
-                    {/* Reset */}
-                    <Button
-                        variant="outline"
-                        onClick={handleResetFilters}
-                        disabled={
-                            pending || reload_pending || !hasActiveFilters
-                        }
-                        className="gap-2"
-                    >
-                        <RotateCcw className="size-4" />
-                        Reset
-                    </Button>
+                {/* Filters */}
+                <div className="flex justify-between gap-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                        {/* Region */}
+                        <div className="flex flex-col gap-2">
+                            <Label>Region</Label>
 
-                    {/* Refresh */}
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleReload}
-                        disabled={reload_pending}
-                    >
-                        <RotateCw
-                            className={`size-4 ${
-                                reload_pending ? "animate-spin" : ""
-                            }`}
-                        />
-                    </Button>
+                            <Select
+                                value={region}
+                                onValueChange={(value) =>
+                                    updateSearchParam("region", value)
+                                }
+                                disabled={isBusy}
+                            >
+                                <SelectTrigger className="w-[180px] bg-white">
+                                    <SelectValue placeholder="Region" />
+                                </SelectTrigger>
 
-                    {/* Rows per page */}
-                    <Select
-                        value={String(limit)}
-                        onValueChange={(value) =>
-                            updateSearchParam("limit", value)
-                        }
-                        disabled={pending || reload_pending}
-                    >
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Limit" />
-                        </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
 
-                        <SelectContent>
-                            <SelectItem value="5">5 rows</SelectItem>
+                                    {props.regions_list.map((region) => (
+                                        <SelectItem
+                                            key={region.pkRegionsId}
+                                            value={region.code}
+                                        >
+                                            {region.description}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                            <SelectItem value="10">10 rows</SelectItem>
+                        {/* Chapter */}
+                        <div className="flex flex-col gap-2">
+                            <Label>Chapter</Label>
 
-                            <SelectItem value="20">20 rows</SelectItem>
+                            <Select
+                                value={chapter}
+                                onValueChange={(value) =>
+                                    updateSearchParam("chapter", value)
+                                }
+                                disabled={isBusy}
+                            >
+                                <SelectTrigger className="w-[180px] bg-white">
+                                    <SelectValue placeholder="Chapter" />
+                                </SelectTrigger>
 
-                            <SelectItem value="50">50 rows</SelectItem>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
 
-                            <SelectItem value="100">100 rows</SelectItem>
-                        </SelectContent>
-                    </Select>
+                                    {props.member_chapters_select.map(
+                                        (chapter) => (
+                                            <SelectItem
+                                                key={chapter.pkChaptersId}
+                                                value={chapter.code}
+                                            >
+                                                {chapter.description}
+                                            </SelectItem>
+                                        ),
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Member Type */}
+                        <div className="flex flex-col gap-2">
+                            <Label>Member Type</Label>
+
+                            <Select
+                                value={member_type}
+                                onValueChange={(value) =>
+                                    updateSearchParam("member_type", value)
+                                }
+                                disabled={isBusy}
+                            >
+                                <SelectTrigger className="w-[180px] bg-white">
+                                    <SelectValue placeholder="Member Type" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+
+                                    <SelectItem value="Auxiliary">
+                                        Auxiliary
+                                    </SelectItem>
+
+                                    <SelectItem value="Associate">
+                                        Associate
+                                    </SelectItem>
+
+                                    <SelectItem value="Fellow">
+                                        Fellow
+                                    </SelectItem>
+
+                                    <SelectItem value="Life">Life</SelectItem>
+
+                                    <SelectItem value="Regular">
+                                        Regular
+                                    </SelectItem>
+
+                                    <SelectItem value="Senior">
+                                        Senior
+                                    </SelectItem>
+
+                                    <SelectItem value="NewMember">
+                                        New Member
+                                    </SelectItem>
+
+                                    <SelectItem value="NewBoard">
+                                        NewBoard
+                                    </SelectItem>
+
+                                    <SelectItem value="Honorary">
+                                        Honorary
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Status */}
+                        <div className="flex flex-col gap-2">
+                            <Label>Status</Label>
+
+                            <Select
+                                value={member_status}
+                                onValueChange={(value: MemberStatusType) =>
+                                    updateSearchParam("status", value)
+                                }
+                                disabled={isBusy}
+                            >
+                                <SelectTrigger className="w-[180px] bg-white">
+                                    <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+
+                                    <SelectItem value="active">
+                                        Active
+                                    </SelectItem>
+
+                                    <SelectItem value="inactive">
+                                        Inactive
+                                    </SelectItem>
+
+                                    <SelectItem value="dormant">
+                                        Dormant
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* License Type */}
+                        <div className="flex flex-col gap-2">
+                            <Label>License Type</Label>
+
+                            <Select
+                                value={license_type}
+                                onValueChange={(value: LicenseType) =>
+                                    updateSearchParam("license_type", value)
+                                }
+                                disabled={isBusy}
+                            >
+                                <SelectTrigger className="w-[180px] bg-white">
+                                    <SelectValue placeholder="License Type" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+
+                                    <SelectItem value="BSEE">BSEE</SelectItem>
+
+                                    <SelectItem value="RME">RME</SelectItem>
+
+                                    <SelectItem value="REE">REE</SelectItem>
+
+                                    <SelectItem value="PEE">PEE</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex shrink-0 items-end justify-end gap-2">
+                        {/* Reset */}
+                        <Button
+                            variant="outline"
+                            onClick={handleResetFilters}
+                            disabled={isBusy || !hasActiveFilters}
+                            className="gap-2"
+                        >
+                            <RotateCcw className="size-4" />
+                            Reset
+                        </Button>
+
+                        {/* Refresh */}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleReload}
+                            disabled={isBusy}
+                        >
+                            <RotateCw
+                                className={`size-4 ${
+                                    reload_pending ? "animate-spin" : ""
+                                }`}
+                            />
+                        </Button>
+
+                        {/* Rows per page */}
+                        <Select
+                            value={String(limit)}
+                            onValueChange={(value) =>
+                                updateSearchParam("limit", value)
+                            }
+                            disabled={isBusy}
+                        >
+                            <SelectTrigger className="w-[180px] bg-white">
+                                <SelectValue placeholder="Limit" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectItem value="5">5 rows</SelectItem>
+
+                                <SelectItem value="10">10 rows</SelectItem>
+
+                                <SelectItem value="20">20 rows</SelectItem>
+
+                                <SelectItem value="50">50 rows</SelectItem>
+
+                                <SelectItem value="100">100 rows</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
             {/* Table */}
             <div className="relative">
-                {pending && (
+                {isBusy && (
                     <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-background/50 backdrop-blur-sm">
                         <div className="flex items-center gap-2">
                             <Loader2 className="animate-spin text-blue-500" />
-                            Loading...
-                        </div>
-                    </div>
-                )}
-                {reload_pending && (
-                    <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-background/50 backdrop-blur-sm">
-                        <div className="flex items-center gap-2">
-                            <Loader2 className="animate-spin text-blue-500" />
-                            Getting fresh data...
+
+                            {reload_pending
+                                ? "Getting fresh data..."
+                                : "Loading..."}
                         </div>
                     </div>
                 )}

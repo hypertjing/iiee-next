@@ -2,11 +2,12 @@ import { getUserMailingAddress, getUserPermanentAddress } from "@/app/lib/dal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { House, Mail, MapPin } from "lucide-react";
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 
 export default async function MemberAddress(props: { profile_id: number }) {
     "use cache";
     cacheLife("default");
+    cacheTag(`profile-${props.profile_id}`);
 
     const permanent_address = await getUserPermanentAddress(props.profile_id);
     const mailing_address = await getUserMailingAddress(props.profile_id);
@@ -59,5 +60,23 @@ export default async function MemberAddress(props: { profile_id: number }) {
 }
 
 export function MemberAddressLoader() {
-    return <Skeleton className="h-[200px] w-full" />;
+    return (
+        <section className="rounded-xl border bg-background p-6">
+            <div className="mb-7">
+                <Skeleton className="h-6 w-24" />
+            </div>
+
+            {/* Permanent */}
+            <div className="space-y-3">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-[105px] w-full rounded-xl" />
+            </div>
+
+            {/* Mailing */}
+            <div className="mt-7 space-y-3">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-[105px] w-full rounded-xl" />
+            </div>
+        </section>
+    );
 }

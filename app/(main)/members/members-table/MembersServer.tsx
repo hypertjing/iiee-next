@@ -18,7 +18,7 @@ export default async function MembersServer(props: {
 }) {
     return (
         <>
-            <div className="mb-10 flex gap-2">
+            <div className="mb-4 flex gap-2">
                 <div className="w-full">
                     <div className="text-lg font-semibold flex items-center gap-2 mb-5">
                         <Users className="w-5 h-5 text-blue-500" />

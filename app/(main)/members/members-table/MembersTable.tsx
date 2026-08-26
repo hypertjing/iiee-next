@@ -47,7 +47,7 @@ export async function MembersTable(props: { data: MemberRegionChapter[] }) {
     return (
         <div className="overflow-hidden rounded-xl border bg-background">
             <Table>
-                <TableHeader className="bg-muted/50">
+                <TableHeader className="bg-white">
                     <TableRow className="hover:bg-transparent">
                         {member_visible && (
                             <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

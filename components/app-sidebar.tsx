@@ -17,8 +17,8 @@ import { db_new } from "@/db/new";
 import { cogsrequest } from "@/db/new/schema";
 import { getInitials } from "@/lib/utils";
 import { and, eq } from "drizzle-orm";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SidebarNavLink } from "./SidebarNavLink";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import {
@@ -101,7 +101,7 @@ export async function AppSidebar() {
     });
 
     return (
-        <Sidebar variant="floating" collapsible="icon">
+        <Sidebar variant="inset" collapsible="icon">
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -117,22 +117,18 @@ export async function AppSidebar() {
 
                                 return (
                                     <SidebarMenuItem key={item.title}>
-                                        <SidebarMenuButton asChild>
-                                            <Link href={item.url}>
-                                                <item.icon />
-                                                <span>{item.title}</span>
-                                                {item.url == "/cogs" &&
-                                                    notification_count > 0 && (
-                                                        <Badge
-                                                            variant={
-                                                                "destructive"
-                                                            }
-                                                        >
-                                                            {notification_count}
-                                                        </Badge>
-                                                    )}
-                                            </Link>
-                                        </SidebarMenuButton>
+                                        <SidebarNavLink href={item.url}>
+                                            <item.icon strokeWidth={2.5} />
+                                            <span>{item.title}</span>
+                                            {item.url == "/cogs" &&
+                                                notification_count > 0 && (
+                                                    <Badge
+                                                        variant={"destructive"}
+                                                    >
+                                                        {notification_count}
+                                                    </Badge>
+                                                )}
+                                        </SidebarNavLink>
                                     </SidebarMenuItem>
                                 );
                             })}

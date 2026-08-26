@@ -293,8 +293,8 @@ export async function getUserMembershipInfo(
         membership_date_reg: userprofile.membershipDateReg,
         membership_validity: userprofile.membershipValidity,
         membership_date_updated: userprofile.membershipDateUpdated,
-        membership_chapter: chapter.description,
-        membership_region: region.description,
+        membership_chapter: chapter ? chapter.description : "N/A",
+        membership_region: region ? region.description : "N/A",
         membership_status: membership_status,
     };
 }

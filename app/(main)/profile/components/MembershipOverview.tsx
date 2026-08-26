@@ -12,7 +12,7 @@ import {
     ShieldCheck,
     UserStar,
 } from "lucide-react";
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import DetailItem from "./DetailItem";
 
 export default async function MembershipOverview(props: {
@@ -20,6 +20,7 @@ export default async function MembershipOverview(props: {
 }) {
     "use cache";
     cacheLife("default");
+    cacheTag(`profile-${props.profile_id}`);
 
     const membership_info = await getUserMembershipInfo(props.profile_id);
 
@@ -115,5 +116,43 @@ function Dormant() {
 }
 
 export function MembershipOverviewLoader() {
-    return <Skeleton className="h-[200px] w-full" />;
+    return (
+        <section className="rounded-xl border bg-background">
+            <div className="px-6 py-5">
+                <Skeleton className="h-5 w-48" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-x-12 gap-y-7 px-6 pb-7 md:grid-cols-3">
+                <MembershipDetailSkeleton labelWidth="w-20" valueWidth="w-28" />
+
+                <MembershipDetailSkeleton labelWidth="w-36" valueWidth="w-20" />
+
+                <MembershipDetailSkeleton labelWidth="w-40" valueWidth="w-48" />
+
+                <MembershipDetailSkeleton labelWidth="w-16" valueWidth="w-44" />
+
+                <MembershipDetailSkeleton labelWidth="w-16" valueWidth="w-40" />
+
+                <div className="flex flex-col gap-2">
+                    <Skeleton className="h-4 w-14" />
+                    <Skeleton className="h-6 w-16 rounded-md" />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function MembershipDetailSkeleton({
+    labelWidth,
+    valueWidth,
+}: {
+    labelWidth: string;
+    valueWidth: string;
+}) {
+    return (
+        <div className="flex flex-col gap-2">
+            <Skeleton className={`h-4 ${labelWidth}`} />
+            <Skeleton className={`h-5 ${valueWidth}`} />
+        </div>
+    );
 }
