@@ -28,6 +28,8 @@ export async function MembersTable(props: { data: MemberRegionChapter[] }) {
         return <div>Loading...</div>;
     }
 
+    // await sleep(5000);
+
     const user_position_code = user.account.fkUserControlCode;
 
     const allowed_positions = [
@@ -167,6 +169,7 @@ export async function MembersTable(props: { data: MemberRegionChapter[] }) {
                                 {/* Action */}
                                 <TableCell className="px-4 py-4 text-center align-top">
                                     <Link
+                                        prefetch={true}
                                         href={`/members/${data.userprofiles.pkUserProfilesId}`}
                                     >
                                         <Button

@@ -1,4 +1,4 @@
-import { getUserMembershipInfo } from "@/app/lib/dal";
+import { getUser, getUserMembershipInfo } from "@/app/lib/dal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,17 +12,26 @@ import {
     ShieldCheck,
     UserStar,
 } from "lucide-react";
-import { cacheLife, cacheTag } from "next/cache";
 import DetailItem from "./DetailItem";
 
 export default async function MembershipOverview(props: {
-    profile_id: number;
+    profile_id?: number;
 }) {
-    "use cache";
-    cacheLife("default");
-    cacheTag(`profile-${props.profile_id}`);
+    const user = await getUser();
 
-    const membership_info = await getUserMembershipInfo(props.profile_id);
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user.userprofile) {
+        return;
+    }
+
+    const profile_id = props.profile_id
+        ? props.profile_id
+        : user.userprofile.pkUserProfilesId;
+
+    const membership_info = await getUserMembershipInfo(profile_id);
 
     const is_membership_expired: MemberStatus =
         membership_info.membership_status;

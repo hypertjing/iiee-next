@@ -1,11 +1,13 @@
 import { MemberChapters, MemberRegionChapter, MemberRegions } from "@/types";
 import { Users } from "lucide-react";
+import { Suspense } from "react";
 import MemberStatusDashboard from "../dashboard/MemberStatusDashboard";
 import MembersSearchFilters from "./MembersSearchFilters";
 import { MembersTable } from "./MembersTable";
+import MembersTableSkeleton from "./MembersTableSkeleton";
 import { ScrollToTop } from "./ScrollToTop";
 
-export default async function MembersServer(props: {
+export default function MembersServer(props: {
     regions_list: MemberRegions[];
     member_chapters_select: MemberChapters[];
     table_user_profiles: {
@@ -46,7 +48,11 @@ export default async function MembersServer(props: {
                     regions_list={props.regions_list}
                     member_chapters_select={props.member_chapters_select}
                 >
-                    <MembersTable data={props.table_user_profiles.members} />
+                    <Suspense fallback={<MembersTableSkeleton />}>
+                        <MembersTable
+                            data={props.table_user_profiles.members}
+                        />
+                    </Suspense>
                 </MembersSearchFilters>
             </div>
             <ScrollToTop />

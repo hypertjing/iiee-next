@@ -1,17 +1,26 @@
-import { getUserLicenses } from "@/app/lib/dal";
+import { getUser, getUserLicenses } from "@/app/lib/dal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FileBadge2 } from "lucide-react";
-import { cacheLife, cacheTag } from "next/cache";
 import MemberLicenseBlock from "./MemberLicenseBlock";
 
-export default async function MemberLicenses(props: { profile_id: number }) {
-    "use cache";
-    cacheLife("default");
-    cacheTag(`profile-${props.profile_id}`);
+export default async function MemberLicenses(props: { profile_id?: number }) {
+    const user = await getUser();
 
-    const user_licenses = await getUserLicenses(props.profile_id);
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user.userprofile) {
+        return;
+    }
+
+    const profile_id = props.profile_id
+        ? props.profile_id
+        : user.userprofile.pkUserProfilesId;
+
+    const user_licenses = await getUserLicenses(profile_id);
 
     return (
         <Card>

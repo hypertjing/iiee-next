@@ -1,6 +1,4 @@
-import { db_old } from "@/db/old";
-import { regions } from "@/db/old/drizzle/schema";
-import { asc } from "drizzle-orm";
+import { getAllRegions } from "@/app/lib/dal";
 import { Metadata } from "next";
 import {
     getRegionChapters,
@@ -32,10 +30,7 @@ export default async function MembersPage({
 }) {
     const params = await searchParams;
 
-    const regions_list = await db_old
-        .select()
-        .from(regions)
-        .orderBy(asc(regions.description));
+    const regions_list = await getAllRegions();
 
     const res_chapters = await getRegionChapters(params.region ?? "all");
 

@@ -381,6 +381,9 @@ export async function reloadMembersTable() {
 }
 
 export async function getRegionChapters(region_code: string) {
+    "use cache";
+    cacheLife("weeks");
+
     if (region_code === "all") {
         const chapters_list = await db_old
             .select()

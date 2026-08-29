@@ -16,10 +16,11 @@ import {
 } from "@/db/old/drizzle/schema";
 import { isExpired } from "@/lib/utils";
 import { LicenseCodeType, MemberStatus, MemberType, User } from "@/types";
-import { desc, eq } from "drizzle-orm";
-import { cacheLife } from "next/cache";
+import { asc, desc, eq } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 
 export const verifySession = cache(async () => {
@@ -65,7 +66,8 @@ async function getUserInfo(session: {
     userProfileId: unknown;
 }) {
     "use cache";
-    cacheLife("minutes");
+    cacheLife("hours");
+    cacheTag("user-info");
 
     const userProfileId: number = session.userProfileId as number;
     const userId: number = session.userId as number;
@@ -84,7 +86,7 @@ async function getUserInfo(session: {
     return { account, userprofile };
 }
 
-export const getUser = cache(async () => {
+export const getUser = async () => {
     const session = await verifySession();
     if (!session) return null;
 
@@ -94,7 +96,16 @@ export const getUser = cache(async () => {
         account: user_info.account,
         userprofile: user_info.userprofile,
     };
-});
+};
+
+export async function getAuthId() {
+    const session = await verifySession();
+    if (!session) return null;
+
+    const userId: number = session.userId as number;
+
+    return userId;
+}
 
 // export async function getUserPositionCode(userProfileId: number) {
 //     "use cache";
@@ -300,10 +311,23 @@ export async function getUserMembershipInfo(
 }
 
 export async function isMembershipExpired(user: User) {
+    await connection();
     const date_now = new Date(Date.now());
     if (!user.userprofile) {
         return false;
     }
-    // return true;
+
     return date_now > user.userprofile.membershipValidity;
+}
+
+export async function getAllRegions() {
+    "use cache";
+    cacheLife("weeks");
+
+    const regions_list = await db_old
+        .select()
+        .from(regions)
+        .orderBy(asc(regions.description));
+
+    return regions_list;
 }

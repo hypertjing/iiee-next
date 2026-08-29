@@ -1,18 +1,27 @@
-import { getUserProfile } from "@/app/lib/dal";
+import { getUser, getUserProfile } from "@/app/lib/dal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Cake, Gem, IdCard, Mail, Phone, User } from "lucide-react";
-import { cacheLife, cacheTag } from "next/cache";
 import DetailItem from "./DetailItem";
 
 export default async function MemberPersonalInformation(props: {
-    profile_id: number;
+    profile_id?: number;
 }) {
-    "use cache";
-    cacheLife("default");
-    cacheTag(`profile-${props.profile_id}`);
+    const user = await getUser();
 
-    const userprofile = await getUserProfile(props.profile_id);
+    if (!user) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user.userprofile) {
+        return;
+    }
+
+    const profile_id = props.profile_id
+        ? props.profile_id
+        : user.userprofile.pkUserProfilesId;
+
+    const userprofile = await getUserProfile(profile_id);
 
     return (
         <Card className="lg:col-span-2">

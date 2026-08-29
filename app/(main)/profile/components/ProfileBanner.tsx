@@ -1,21 +1,28 @@
-import { getUserLatestLicense, getUserProfile } from "@/app/lib/dal";
+import { getUser, getUserLatestLicense, getUserProfile } from "@/app/lib/dal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from "@/lib/utils";
-import { cacheLife, cacheTag } from "next/cache";
 
-export default async function ProfileBanner(props: { profile_id: number }) {
-    "use cache";
-    cacheLife("default");
-    cacheTag(`profile-${props.profile_id}`);
+export default async function ProfileBanner(props: { profile_id?: number }) {
+    const user = await getUser();
 
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    if (!user) {
+        return <div>Loading...</div>;
+    }
 
-    const userprofile = await getUserProfile(props.profile_id);
+    if (!user.userprofile) {
+        return;
+    }
 
-    const latest_license = await getUserLatestLicense(props.profile_id);
+    const profile_id = props.profile_id
+        ? props.profile_id
+        : user.userprofile.pkUserProfilesId;
+
+    const userprofile = await getUserProfile(profile_id);
+
+    const latest_license = await getUserLatestLicense(profile_id);
 
     let profession = "N/A";
     if (latest_license && latest_license.LicenseType) {
