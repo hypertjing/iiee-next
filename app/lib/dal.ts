@@ -60,6 +60,32 @@ export async function getUserProfile(profile_id: number) {
     return userprofile;
 }
 
+export async function getUserProfileByAccountId(account_id: number) {
+    const user_profile_db = await db_old
+        .select()
+        .from(userprofiles)
+        .where(eq(userprofiles.fkUserAccountsId, account_id));
+
+    const userprofile = user_profile_db[0];
+
+    return userprofile;
+}
+
+export async function getUserProfileIdByAccountId(account_id: number) {
+    const user_profile_db = await db_old
+        .select({
+            id: userprofiles.pkUserProfilesId,
+        })
+        .from(userprofiles)
+        .where(eq(userprofiles.fkUserAccountsId, account_id));
+
+    if (user_profile_db.length <= 0) {
+        return null;
+    }
+
+    return user_profile_db[0].id;
+}
+
 async function getUserInfo(session: {
     isAuth: boolean;
     userId: {};
@@ -88,7 +114,9 @@ async function getUserInfo(session: {
 
 export const getUser = async () => {
     const session = await verifySession();
-    if (!session) return null;
+    if (!session) {
+        redirect("/login");
+    }
 
     const user_info = await getUserInfo(session);
 
@@ -100,7 +128,9 @@ export const getUser = async () => {
 
 export async function getAuthId() {
     const session = await verifySession();
-    if (!session) return null;
+    if (!session) {
+        redirect("/login");
+    }
 
     const userId: number = session.userId as number;
 

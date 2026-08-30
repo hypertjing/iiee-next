@@ -1,6 +1,3 @@
-import { db_old } from "@/db/old";
-import { userprofiles } from "@/db/old/drizzle/schema";
-import { eq } from "drizzle-orm";
 import { Suspense } from "react";
 import MemberAddress, {
     MemberAddressLoader,
@@ -17,6 +14,7 @@ import MembershipOverview, {
 import ProfileBanner, {
     ProfileBannerLoader,
 } from "../../profile/components/ProfileBanner";
+import ReloadButton from "../../profile/components/ReloadButton";
 import WorkInformation, {
     WorkInformationLoader,
 } from "../../profile/components/WorkInformation";
@@ -30,14 +28,6 @@ export default async function ProfilePage({
     params: Promise<{ m_pid: number }>;
 }) {
     const { m_pid } = await params;
-
-    const profile = (
-        await db_old
-            .select()
-            .from(userprofiles)
-            .where(eq(userprofiles.pkUserProfilesId, m_pid))
-            .limit(1)
-    )[0];
 
     function calculateAge(birthDate: Date, referenceDate = new Date()) {
         const dob = new Date(birthDate);
@@ -59,35 +49,34 @@ export default async function ProfilePage({
 
     return (
         <div className="min-h-screen mb-20 max-w-6xl">
-            <div className="mb-6">
+            <div className="mb-6 flex items-center justify-between">
                 <HistoryBackButton />
+                <ReloadButton profile_id={m_pid} />
             </div>
             <div className="space-y-6">
                 <Suspense fallback={<ProfileBannerLoader />}>
-                    <ProfileBanner profile_id={profile.pkUserProfilesId} />
+                    <ProfileBanner profile_id={m_pid} />
                 </Suspense>
 
                 <Suspense fallback={<MembershipOverviewLoader />}>
-                    <MembershipOverview profile_id={profile.pkUserProfilesId} />
+                    <MembershipOverview profile_id={m_pid} />
                 </Suspense>
 
                 <Suspense fallback={<MemberLicensesLoader />}>
-                    <MemberLicenses profile_id={profile.pkUserProfilesId} />
+                    <MemberLicenses profile_id={m_pid} />
                 </Suspense>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     <Suspense fallback={<MemberPersonalInformationLoader />}>
-                        <MemberPersonalInformation
-                            profile_id={profile.pkUserProfilesId}
-                        />
+                        <MemberPersonalInformation profile_id={m_pid} />
                     </Suspense>
                     <Suspense fallback={<MemberAddressLoader />}>
-                        <MemberAddress profile_id={profile.pkUserProfilesId} />
+                        <MemberAddress profile_id={m_pid} />
                     </Suspense>
                 </div>
 
                 <Suspense fallback={<WorkInformationLoader />}>
-                    <WorkInformation profile_id={profile.pkUserProfilesId} />
+                    <WorkInformation profile_id={m_pid} />
                 </Suspense>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import { getUser } from "@/app/lib/dal";
+import { getAuthId, getUserProfileIdByAccountId } from "@/app/lib/dal";
 import { Suspense } from "react";
 import MemberAddress, { MemberAddressLoader } from "./components/MemberAddress";
 import MemberLicenses, {
@@ -13,13 +13,10 @@ import MembershipOverview, {
 import ProfileBanner, { ProfileBannerLoader } from "./components/ProfileBanner";
 import ReloadButton from "./components/ReloadButton";
 export default async function ProfilePage() {
-    const user = await getUser();
+    const auth_id = await getAuthId();
+    const profile_id = await getUserProfileIdByAccountId(auth_id);
 
-    if (!user) {
-        return <>Cannot find user</>;
-    }
-
-    if (!user.userprofile) {
+    if (!profile_id) {
         return (
             <div className="max-w-6xl space-y-6">
                 <div>
@@ -49,32 +46,29 @@ export default async function ProfilePage() {
                         View your membership and personal information.
                     </p>
                 </div>
-                <div>
-                    <ReloadButton
-                        profile_id={user.userprofile.pkUserProfilesId}
-                    />
+                <div className="text-end">
+                    <ReloadButton profile_id={profile_id} />
                 </div>
                 <Suspense fallback={<ProfileBannerLoader />}>
-                    <ProfileBanner />
+                    <ProfileBanner profile_id={profile_id} />
                 </Suspense>
 
                 <Suspense fallback={<MembershipOverviewLoader />}>
-                    <MembershipOverview />
+                    <MembershipOverview profile_id={profile_id} />
                 </Suspense>
 
                 <Suspense fallback={<MemberLicensesLoader />}>
-                    <MemberLicenses />
+                    <MemberLicenses profile_id={profile_id} />
                 </Suspense>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     <Suspense fallback={<MemberPersonalInformationLoader />}>
-                        <MemberPersonalInformation />
+                        <MemberPersonalInformation profile_id={profile_id} />
                     </Suspense>
                     <Suspense fallback={<MemberAddressLoader />}>
-                        <MemberAddress />
+                        <MemberAddress profile_id={profile_id} />
                     </Suspense>
                 </div>
-                {/* <UserInfosSection userPromise={user} /> */}
             </div>
         </main>
     );
