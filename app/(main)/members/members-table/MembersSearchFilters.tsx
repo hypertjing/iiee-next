@@ -11,7 +11,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { MemberChapters, MemberRegions } from "@/types";
-import { Loader2, RotateCcw, RotateCw } from "lucide-react";
+import { Loader2, RotateCcw } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { LicenseType, MemberStatusType, reloadMembersTable } from "../actions";
@@ -444,18 +444,6 @@ export default function MembersSearchFilters(props: {
                         </Button>
 
                         {/* Refresh */}
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handleReload}
-                            disabled={isBusy}
-                        >
-                            <RotateCw
-                                className={`size-4 ${
-                                    reload_pending ? "animate-spin" : ""
-                                }`}
-                            />
-                        </Button>
 
                         {/* Rows per page */}
                         <Select

@@ -2,6 +2,7 @@ import { MemberChapters, MemberRegionChapter, MemberRegions } from "@/types";
 import { Users } from "lucide-react";
 import { Suspense } from "react";
 import MemberStatusDashboard from "../dashboard/MemberStatusDashboard";
+import MembersPageReloadButton from "./MembersPageReloadButton";
 import MembersSearchFilters from "./MembersSearchFilters";
 import { MembersTable } from "./MembersTable";
 import MembersTableSkeleton from "./MembersTableSkeleton";
@@ -25,6 +26,9 @@ export default function MembersServer(props: {
                     <div className="text-lg font-semibold flex items-center gap-2 mb-5">
                         <Users className="w-5 h-5 text-blue-500" />
                         Member Overview
+                    </div>
+                    <div className="mb-4">
+                        <MembersPageReloadButton />
                     </div>
                     <div className="">
                         <MemberStatusDashboard
